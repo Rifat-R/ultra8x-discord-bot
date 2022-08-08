@@ -1,0 +1,7 @@
+#Graphics.
+POKEBALL = "https://cdn.discordapp.com/attachments/510144275712049152/830146265445826600/pokeball6.png"
+
+#Emojis.
+BINGUSBOIN = "<:bingusboin:821807084390973470>"
+WALLET_EMOJI = "<:wallet:807660401352376381>"
+BANK_EMOJI = "<:BankB:805922386037440512>"
