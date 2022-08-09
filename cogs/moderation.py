@@ -14,7 +14,7 @@ class Moderation(commands.Cog):
     @commands.slash_command(description="Warns a member in the server")
     async def warn(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
         db.warn_log(member.id, reason, ctx.author.id)
-        embed = disnake.Embed(title="Ban", color= self.EMBED_COLOR)
+        embed = disnake.Embed(title="Warn", color= self.EMBED_COLOR)
         embed.add_field(name="User warned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
         embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
