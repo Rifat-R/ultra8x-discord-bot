@@ -23,6 +23,7 @@ def restore_database():
     (
     user_id INTEGER,
     reason TEXT,
+    issued_by_id,
     time DATETIME
     ) 
     """)
@@ -31,6 +32,7 @@ def restore_database():
     (
     user_id INTEGER,
     reason TEXT,
+    issued_by_id,
     time DATETIME
     ) 
     """)
@@ -40,10 +42,20 @@ def restore_database():
     (
     user_id INTEGER,
     reason TEXT,
-    duration INTEGER,
+    duration TEXT,
+    issued_by_id,
     time DATETIME
     ) 
     """)
     moderation.commit()
-
+    
+    moderation.c.execute("""CREATE TABLE IF NOT EXISTS warn_log
+    (
+    user_id INTEGER,
+    reason TEXT,
+    issued_by_id,
+    time DATETIME
+    ) 
+    """)
+    moderation.commit()
     moderation.close()

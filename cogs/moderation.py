@@ -1,6 +1,7 @@
 import disnake
 from disnake.ext import commands
 from disnake.utils import get
+from utils import database as db
 import asyncio
 
 class Moderation(commands.Cog):
@@ -8,6 +9,16 @@ class Moderation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.EMBED_COLOR = 0xffffff
+        
+        
+    @commands.slash_command(description="Warns a member in the server")
+    async def warn(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
+        db.warn_log(member.id, reason, ctx.author.id)
+        embed = disnake.Embed(title="Ban", color= self.EMBED_COLOR)
+        embed.add_field(name="User warned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
+        embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
+        await ctx.send(embed=embed)
 
 
     @commands.slash_command(description="Kicks a member in the server")
@@ -19,15 +30,16 @@ class Moderation(commands.Cog):
             reason (str, optional): The reason for the kick. Defaults to "No reason has been given".
         """
         await member.kick(reason=reason)
+        db.kick_log(member.id, reason, ctx.author.id)
         embed = disnake.Embed(title="Kick", color= self.EMBED_COLOR)
         embed.add_field(name="User kicked:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-        embed.add_field(name="Action issued by:", value=f"**{ctx.message.author.display_name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await ctx.send(embed=embed)
 
 
 
-    @commands.command()
+    @commands.slash_command(description="Bans user from the server")
     async def ban(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
         """Bans a user from the server
 
@@ -36,14 +48,15 @@ class Moderation(commands.Cog):
             reason (str, optional): The reason for the kick. Defaults to "No reason has been given".
         """
         await member.ban(reason=reason)
+        db.ban_log(member.id, reason, ctx.author.id)
         embed = disnake.Embed(title="Ban", color= self.EMBED_COLOR)
         embed.add_field(name="User banned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-        embed.add_field(name="Action issued by:", value=f"**{ctx.message.author.display_name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await ctx.send(embed=embed)
 
 
-    @commands.command()
+    @commands.slash_command(description="Kicks user out from the server")
     async def mute(self, ctx, member: disnake.Member, time, *, reason="No reason has been given"):
         #The reason for the * is so we can have a string of words with spaces instead of it being seperated as parameters.
         """Mutes a user by server muting them so they cannot speak in voice chat but furthermore assigns them to a muted
@@ -79,15 +92,17 @@ class Moderation(commands.Cog):
                         time_prefix = "minute(s)"
 
                     #Muting the user
+                    duration = f"{real_time} {time_prefix}"
                     await member.add_roles(role) #Adds the muted role to the user.
                     embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
                     embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-                    embed.add_field(name="Action issued by:", value=f"**{ctx.message.author.display_name}**", inline=False)
+                    embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
                     embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
-                    embed.add_field(name="Mute time: ", value=f"{real_time} {time_prefix}.", inline=False)
+                    embed.add_field(name="Mute time: ", value=duration, inline=False)
                     await ctx.send(embed=embed) #Sends an embed of the mute in an aesthetic way
 
                     print(f"Player {member.display_name} has been muted for {real_time} {time_prefix}") #Checking if it works properly
+                    db.mute_log(member.id, reason, duration, ctx.author.id)
                     await asyncio.sleep(time_muted) #Sleeps for the time period the staff member set for in seconds
 
                     await member.remove_roles(role) #Removes the "Muted" role from the user
@@ -112,39 +127,29 @@ class Moderation(commands.Cog):
                     #Makes sure so for every text channel, anyone with the role cannot send messages in text
                     #channels
                     
-                # for i in ctx.guild.text_channels:
-                # 	await i.set_permissions(ctx.guild.default_role, send_messages=False)
-
-    # @commands.command()
-    # async def clear(self, ctx, amount : int):
-    # 	await ctx.channel.purge(limit=int(amount + 1))
-
-
-    # @commands.has_role("staff")
-    # @commands.command()
-    # async def test(self, ctx):
-    # 	print(self.bot.user.id)
-
-
+    @commands.slash_command(description="Purges an amount of messages from the text channel")
+    async def clear(self, ctx, amount : int):
+        await ctx.channel.purge(limit=int(amount + 1))
+     
         
     @ban.error
     async def example_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingRequiredArgument):
-            message = f"<@{ctx.message.author.id}> **Command was typed incorrectly!** `.ban <@user> (<reason>)`"
+            message = f"<@{ctx.author.id}> **Command was typed incorrectly!** `.ban <@user> (<reason>)`"
             await ctx.send(message, delete_after = 10)
 
 
     @kick.error
     async def example_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingRequiredArgument):
-            message = f"<@{ctx.message.author.id}> **Command was typed incorrectly!** `.kick <@user> <time>(<s/m/h/d>) (<reason>)`"
+            message = f"<@{ctx.author.id}> **Command was typed incorrectly!** `.kick <@user> <time>(<s/m/h/d>) (<reason>)`"
             await ctx.send(message, delete_after = 10)
 
 
     @mute.error
     async def example_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingRequiredArgument):
-            message = f"<@{ctx.message.author.id}> **Command was typed incorrectly!** `.mute <@user> <time>(<s/m/h/d>) (<reason>)`"
+            message = f"<@{ctx.author.id}> **Command was typed incorrectly!** `.mute <@user> <time>(<s/m/h/d>) (<reason>)`"
             await ctx.send(message, delete_after = 10)			
 
 

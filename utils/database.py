@@ -144,31 +144,47 @@ def bank(user_id:int) -> int:
     return db.c.fetchone()[0]
 
 
-def ban_log(user_id:int, reason_message:str):
+def ban_log(user_id:int, reason_message:str, issued_by_id:int):
     time = datetime.now() #This gets the current time in a datetime datatype. This allows us to instantly put this variable into the
     #database query as it is already in a datetime datatype format. The function datetime has been imported at the start of this file.
     db = database(MODERATION)
     db.start_connection()
-    db.c.execute(f"INSERT INTO ban_log VALUES (?,?,?)",(user_id, reason_message, time,))
+    db.c.execute(f"INSERT INTO ban_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
     db.commit()
     db.close()
     
     
-def kick_log(user_id:int, reason_message:str):
+def kick_log(user_id:int, reason_message:str, issued_by_id:int):
     time = datetime.now() #This gets the current time in a datetime datatype. This allows us to instantly put this variable into the
     #database query as it is already in a datetime datatype format. The function datetime has been imported at the start of this file.
     db = database(MODERATION)
     db.start_connection()
-    db.c.execute(f"INSERT INTO kick_log VALUES (?,?,?)",(user_id, reason_message, time,))
+    db.c.execute(f"INSERT INTO kick_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
     db.commit()
     db.close()
     
     
-def mute_log(user_id:int, reason_message:str):
-    time = datetime.now() #This gets the current time in a datetime datatype. This allows us to instantly put this variable into the
-    #database query as it is already in a datetime datatype format. The function datetime has been imported at the start of this file.
+def mute_log(user_id:int, reason_message:str, duration:int, issued_by_id:int):
+    """Logs mute infraction
+
+    Args:
+        user_id (int): Discord id of the user who recieved the mute infraction
+        reason_message (str): Reason for mute
+        duration (int): Duration must be set in seconds
+        issued_by_id (int): Discord id of the user who issued the mute infraction.
+    """
+    time = datetime.now()
     db = database(MODERATION)
     db.start_connection()
-    db.c.execute(f"INSERT INTO mute_log VALUES (?,?,?)",(user_id, reason_message, time,))
+    db.c.execute(f"INSERT INTO mute_log VALUES (?,?,?,?,?)",(user_id, reason_message, duration, issued_by_id, time,))
+    db.commit()
+    db.close()
+    
+    
+def warn_log(user_id:int, reason_message:str, issued_by_id:int):
+    time = datetime.now()
+    db = database(MODERATION)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO warn_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
     db.commit()
     db.close()
