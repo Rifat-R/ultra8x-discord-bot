@@ -58,74 +58,96 @@ class Moderation(commands.Cog):
         embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await inter.send(embed=embed)
-
-
-    @commands.slash_command(description="Kicks user out from the server")
-    async def mute(self, inter, member: disnake.Member, time, *, reason="No reason has been given"):
         
-        """Mutes a user by server muting them so they cannot speak in voice chat but furthermore assigns them to a muted
-            role that revokes their permission to type in chat.
+        
+        
+    @commands.slash_command(description="Gives user a timeout")
+    async def mute(self, inter, member: disnake.Member, time:int, *, reason="No reason has been given"):
+        await member.timeout(duration=time)
+        embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
+        embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
+        embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
+        embed.add_field(name="Mute time: ", value=time, inline=False)
+        await inter.send(embed=embed)
+        
+    @commands.slash_command(description="Removes user from timeout")
+    async def unmute(self, inter, member: disnake.Member,*, reason="No reason has been given"):
+        await member.timeout(duration=None)
+        embed = disnake.Embed(title="Unmuted", color = self.EMBED_COLOR)
+        embed.add_field(name="User unmuted: ", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
+        embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
+        embed.add_field(name="Muted until: ", value=f"**{member.current_timeout}**", inline=False)
+        await inter.send(embed=embed)
 
-        Args:
-            member (disnake.Member): The user's id or their @ 
-            time ([type]): The time. This is defaulted to minutes but can be changed if you add a prefix (s,m,d) after the number. 
-            reason (str, optional): Reason given for the mute. Defaults to "No reason has been given".
-        """
-        perms = disnake.Permissions(send_messages=False) 
-        created_role = False
-        if_mute_is_finished = False
-        while not if_mute_is_finished:
-            for role in inter.guild.roles:
-                if role.name == "Muted": 
-                    if time[-1].isalpha(): 
-                        real_time = int(time[:-1]) 
-                        if time[-1] == "s":
-                            time_muted = real_time
-                            time_prefix = "second(s)"
-                        elif time[-1] == "m":
-                            time_muted = real_time * 60
-                            time_prefix = "minute(s)"
-                        elif time[-1] == "d":
-                            time_muted = real_time * 60 * 60
-                            time_prefix = "day(s)"
-                    else:
-                        real_time = int(time)
-                        time_muted = real_time * 60
-                        time_prefix = "minute(s)"
+
+    # @commands.slash_command(description="Mutes user in the server")
+    # async def mute(self, inter, member: disnake.Member, time, *, reason="No reason has been given"):
+        
+    #     """Mutes a user by server muting them so they cannot speak in voice chat but furthermore assigns them to a muted
+    #         role that revokes their permission to type in chat.
+
+    #     Args:
+    #         member (disnake.Member): The user's id or their @ 
+    #         time ([type]): The time. This is defaulted to minutes but can be changed if you add a prefix (s,m,d) after the number. 
+    #         reason (str, optional): Reason given for the mute. Defaults to "No reason has been given".
+    #     """
+    #     perms = disnake.Permissions(send_messages=False) 
+    #     created_role = False
+    #     if_mute_is_finished = False
+    #     while not if_mute_is_finished:
+    #         for role in inter.guild.roles:
+    #             if role.name == "Muted": 
+    #                 if time[-1].isalpha(): 
+    #                     real_time = int(time[:-1]) 
+    #                     if time[-1] == "s":
+    #                         time_muted = real_time
+    #                         time_prefix = "second(s)"
+    #                     elif time[-1] == "m":
+    #                         time_muted = real_time * 60
+    #                         time_prefix = "minute(s)"
+    #                     elif time[-1] == "d":
+    #                         time_muted = real_time * 60 * 60
+    #                         time_prefix = "day(s)"
+    #                 else:
+    #                     real_time = int(time)
+    #                     time_muted = real_time * 60
+    #                     time_prefix = "minute(s)"
 
                     
-                    duration = f"{real_time} {time_prefix}"
-                    await member.add_roles(role) 
-                    embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
-                    embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-                    embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
-                    embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
-                    embed.add_field(name="Mute time: ", value=duration, inline=False)
-                    await inter.send(embed=embed) 
+    #                 duration = f"{real_time} {time_prefix}"
+    #                 await member.add_roles(role) 
+    #                 embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
+    #                 embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
+    #                 embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
+    #                 embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
+    #                 embed.add_field(name="Mute time: ", value=duration, inline=False)
+    #                 await inter.send(embed=embed) 
 
-                    print(f"Player {member.display_name} has been muted for {real_time} {time_prefix}") 
-                    db.mute_log(member.id, reason, duration, inter.author.id)
-                    await asyncio.sleep(time_muted) 
+    #                 print(f"Player {member.display_name} has been muted for {real_time} {time_prefix}") 
+    #                 db.mute_log(member.id, reason, duration, inter.author.id)
+    #                 await asyncio.sleep(time_muted) 
 
-                    await member.remove_roles(role) 
+    #                 await member.remove_roles(role) 
 
                     
-                    embed = disnake.Embed(title="Unmuted", color = self.EMBED_COLOR)
-                    embed.add_field(name="User unmuted: ", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-                    embed.add_field(name="Time muted for: ", value=f"**{real_time} {time_prefix}**", inline=False)
-                    await inter.send(embed=embed)
-                    if_mute_is_finished = True 
-                    created_role = True 
-                    for i in inter.guild.text_channels:
-                        await i.set_permissions(role, send_messages=False)
+    #                 embed = disnake.Embed(title="Unmuted", color = self.EMBED_COLOR)
+    #                 embed.add_field(name="User unmuted: ", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
+    #                 embed.add_field(name="Time muted for: ", value=f"**{real_time} {time_prefix}**", inline=False)
+    #                 await inter.send(embed=embed)
+    #                 if_mute_is_finished = True 
+    #                 created_role = True 
+    #                 for i in inter.guild.text_channels:
+    #                     await i.set_permissions(role, send_messages=False)
 
-            if not created_role: 
-                await inter.guild.create_role(name="Muted", permissions=perms) 
-                role = get(inter.guild.roles, name="Muted")
-                print(role)
-                created_role = True
-                for i in inter.guild.text_channels:
-                    await i.set_permissions(role, send_messages=False) 
+    #         if not created_role: 
+    #             await inter.guild.create_role(name="Muted", permissions=perms) 
+    #             role = get(inter.guild.roles, name="Muted")
+    #             print(role)
+    #             created_role = True
+    #             for i in inter.guild.text_channels:
+    #                 await i.set_permissions(role, send_messages=False) 
                     
                     
     @commands.slash_command(description="Purges an amount of messages from the text channel")
