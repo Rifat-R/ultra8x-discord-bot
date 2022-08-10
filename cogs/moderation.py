@@ -12,17 +12,17 @@ class Moderation(commands.Cog):
         
         
     @commands.slash_command(description="Warns a member in the server")
-    async def warn(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
-        db.warn_log(member.id, reason, ctx.author.id)
+    async def warn(self, inter, member:disnake.Member, *, reason="No reason has been given"):
+        db.warn_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Warn", color= self.EMBED_COLOR)
         embed.add_field(name="User warned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
 
     @commands.slash_command(description="Kicks a member in the server")
-    async def kick(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
+    async def kick(self, inter, member:disnake.Member, *, reason="No reason has been given"):
         """Kicks a user from the server
 
         Args:
@@ -30,17 +30,17 @@ class Moderation(commands.Cog):
             reason (str, optional): The reason for the kick. Defaults to "No reason has been given".
         """
         await member.kick(reason=reason)
-        db.kick_log(member.id, reason, ctx.author.id)
+        db.kick_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Kick", color= self.EMBED_COLOR)
         embed.add_field(name="User kicked:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
 
 
     @commands.slash_command(description="Bans user from the server")
-    async def ban(self, ctx, member:disnake.Member, *, reason="No reason has been given"):
+    async def ban(self, inter, member:disnake.Member, *, reason="No reason has been given"):
         """Bans a user from the server
 
         Args:
@@ -48,16 +48,16 @@ class Moderation(commands.Cog):
             reason (str, optional): The reason for the kick. Defaults to "No reason has been given".
         """
         await member.ban(reason=reason)
-        db.ban_log(member.id, reason, ctx.author.id)
+        db.ban_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Ban", color= self.EMBED_COLOR)
         embed.add_field(name="User banned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-        embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
+        embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
-        await ctx.send(embed=embed)
+        await inter.send(embed=embed)
 
 
     @commands.slash_command(description="Kicks user out from the server")
-    async def mute(self, ctx, member: disnake.Member, time, *, reason="No reason has been given"):
+    async def mute(self, inter, member: disnake.Member, time, *, reason="No reason has been given"):
         #The reason for the * is so we can have a string of words with spaces instead of it being seperated as parameters.
         """Mutes a user by server muting them so they cannot speak in voice chat but furthermore assigns them to a muted
             role that revokes their permission to type in chat.
@@ -71,7 +71,7 @@ class Moderation(commands.Cog):
         created_role = False
         if_mute_is_finished = False
         while not if_mute_is_finished:
-            for role in ctx.guild.roles:
+            for role in inter.guild.roles:
                 if role.name == "Muted": #If the role.name == "Muted" is never found, the entire block of code under this if statement is never run.
                     #After, the role name and its permission gets created and then next time it runs it will find the "Muted" role and run the function
                     #properly
@@ -96,13 +96,13 @@ class Moderation(commands.Cog):
                     await member.add_roles(role) #Adds the muted role to the user.
                     embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
                     embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
-                    embed.add_field(name="Action issued by:", value=f"**{ctx.author.display_name}**", inline=False)
+                    embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
                     embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
                     embed.add_field(name="Mute time: ", value=duration, inline=False)
-                    await ctx.send(embed=embed) #Sends an embed of the mute in an aesthetic way
+                    await inter.send(embed=embed) #Sends an embed of the mute in an aesthetic way
 
                     print(f"Player {member.display_name} has been muted for {real_time} {time_prefix}") #Checking if it works properly
-                    db.mute_log(member.id, reason, duration, ctx.author.id)
+                    db.mute_log(member.id, reason, duration, inter.author.id)
                     await asyncio.sleep(time_muted) #Sleeps for the time period the staff member set for in seconds
 
                     await member.remove_roles(role) #Removes the "Muted" role from the user
@@ -111,27 +111,45 @@ class Moderation(commands.Cog):
                     embed = disnake.Embed(title="Unmuted", color = self.EMBED_COLOR)
                     embed.add_field(name="User unmuted: ", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
                     embed.add_field(name="Time muted for: ", value=f"**{real_time} {time_prefix}**", inline=False)
-                    await ctx.send(embed=embed)
+                    await inter.send(embed=embed)
                     if_mute_is_finished = True #Is now true so the while loop does not run a gain
                     created_role = True #Is now true so the created role block does not run as the "Muted" role exists now
-                    for i in ctx.guild.text_channels:
+                    for i in inter.guild.text_channels:
                         await i.set_permissions(role, send_messages=False)
 
             if not created_role: #If created_role is still false, this means "Muted" role is still not created therefore it will create it here
-                await ctx.guild.create_role(name="Muted", permissions=perms) #Creates the Muted role with send_messages perm set as False
-                role = get(ctx.guild.roles, name="Muted")
+                await inter.guild.create_role(name="Muted", permissions=perms) #Creates the Muted role with send_messages perm set as False
+                role = get(inter.guild.roles, name="Muted")
                 print(role)
                 created_role = True
-                for i in ctx.guild.text_channels:
+                for i in inter.guild.text_channels:
                     await i.set_permissions(role, send_messages=False) 
                     #Makes sure so for every text channel, anyone with the role cannot send messages in text
                     #channels
                     
     @commands.slash_command(description="Purges an amount of messages from the text channel")
-    async def clear(self, ctx, amount : int):
-        await ctx.channel.purge(limit=int(amount + 1))
-     
+    async def clear(self, inter, amount : int):
+        await inter.channel.purge(limit=int(amount + 1))
+        messages = "message" if amount==1 else "messages"
+        await inter.send(f"You deleted **{amount}** {messages}", ephemeral=True)
         
+        
+    @commands.slash_command(description="Shows server info")
+    async def serverinfo(self, inter):
+        server_id = inter.guild.id
+        server_name = inter.guild.name
+        server_owner_id = inter.guild.owner_id
+        embed= disnake.Embed(title="Server Info", 
+                             description=f"\
+                             Server Name: {server_name}\n\
+                             Server ID: {server_id}\n\
+                             Server Owner: <@{server_owner_id}>\n\
+                             ")
+        embed.set_thumbnail(inter.guild.icon)
+        await inter.send(embed=embed)
+        
+        
+    #Error Handlers
     @ban.error
     async def example_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.MissingRequiredArgument):

@@ -1,9 +1,7 @@
-from imp import reload
 import disnake
 from disnake.ext import commands
 import os
 from utils import init_database
-import sys
 
 BOT_KEY = 'NzQwMTg1NTk2NTI1NTQzNDI0.G92hI3.qvqaed90aJW9xKJWx9mwq5dDL5KLxYaKWihGiw'
 # Enable all intents except for members and presences
@@ -12,11 +10,12 @@ intents.members = True  # Subscribe to the privileged members intent.
 intents.message_content = True
 
 # bot = commands.Bot(intents=intents, activity=disnake.Game(name="Type in .help"))
-bot = commands.Bot(command_prefix = ".", intents=intents,activity=disnake.Game(name="Type in .help"))
+bot = commands.Bot(command_prefix = ".", intents=intents,activity=disnake.Game(name="Type in .help"), reload=True)
 
 
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
+        print(f"cogs.{filename[:-3]} Loaded")
         bot.load_extension(f"cogs.{filename[:-3]}",) #Loads up all the cogs (modules) in the /cogs directory
 
 
