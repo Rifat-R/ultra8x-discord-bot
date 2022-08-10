@@ -147,7 +147,21 @@ class Moderation(commands.Cog):
                              ")
         embed.set_thumbnail(inter.guild.icon)
         await inter.send(embed=embed)
-        
+
+    @commands.slash_command(description="Shows user info")
+    async def userinfo(self, inter:disnake.CommandInteraction, user:disnake.Member):
+        user_id = user.id
+        username = user.name
+        user_pfp = user.avatar.url
+        user_joined_at = user.joined_at.strftime("%m/%d/%Y, %H:%M:%S")
+        embed= disnake.Embed(title=f"User Information", 
+                             description=f"\
+                             Username: `{username}`\n\
+                             User ID: `{user_id}`\n\
+                             Joined at: `{user_joined_at}`\n\
+                             ")
+        embed.set_thumbnail(user_pfp)
+        await inter.send(embed=embed)
         
     #Error Handlers
     @ban.error
