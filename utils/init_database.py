@@ -5,7 +5,7 @@ moderation = db.database("moderation_logs.db")
 
 
 def restore_database():
-    # Creates player_data tables if player_data.db does not exist.
+    
     player_data.start_connection()
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS user_data
     (
@@ -16,7 +16,7 @@ def restore_database():
     """)
     player_data.conn.commit()
 
-    # Creates moderation tables if moderation.db does not exist.
+    
 
     moderation.start_connection()
     moderation.c.execute("""CREATE TABLE IF NOT EXISTS ban_log
@@ -37,7 +37,7 @@ def restore_database():
     ) 
     """)
     moderation.commit()
-    #Duration will be in seconds for the mute_log database
+    
     moderation.c.execute("""CREATE TABLE IF NOT EXISTS mute_log
     (
     user_id INTEGER,

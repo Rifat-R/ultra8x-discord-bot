@@ -9,7 +9,7 @@ class listeners_Cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        # print(message.content[0])
+        
         if not message.author.bot:
             if message.content[0] != ".":
                 try:
