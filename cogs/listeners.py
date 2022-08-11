@@ -11,12 +11,12 @@ class listeners_Cog(commands.Cog):
     async def on_message(self, message):
         
         if not message.author.bot:
-            if message.content[0] != ".":
-                try:
-                    db.create(message.author.id)
-                    print(f"User {message.author.id} has been created and stored in user_data table.")
-                except(sqlite3.IntegrityError):
-                    pass
+            db.add_xp(message.author.id, 10)
+            try:
+                db.create(message.author.id)
+                print(f"User {message.author.id} has been created and stored in user_data table.")
+            except(sqlite3.IntegrityError):
+                pass
 
 def setup(bot):
     bot.add_cog(listeners_Cog(bot))

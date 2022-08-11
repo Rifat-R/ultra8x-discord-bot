@@ -160,3 +160,25 @@ def remove_infraction(user_id:int):
     db.c.execute(f"DELETE FROM infraction_log WHERE user_id = ? ",(user_id, ))
     db.commit()
     db.close()
+    
+    
+def get_level(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT level FROM user_data WHERE user_id = ? ",(user_id, ))
+    return db.c.fetchone()[0]
+
+
+def get_xp(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT xp FROM user_data WHERE user_id = ? ",(user_id, ))
+    return db.c.fetchone()[0]
+
+def add_xp(user_id:int, xp:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET xp = xp + ? WHERE user_id = ?", (xp, user_id,))
+    db.commit()
+    db.close()
+
