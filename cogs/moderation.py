@@ -1,8 +1,7 @@
 import disnake
 from disnake.ext import commands
 from disnake.utils import get
-from utils import database as db
-import asyncio
+from utils import database as db, pagination
 
 
 
@@ -118,12 +117,26 @@ class Moderation(commands.Cog):
         embed.set_thumbnail(user_pfp)
         await inter.send(embed=embed)
     
-    @commands.slash_command(description="Gets user infracitons")
+    @commands.slash_command(description="Gets user infractions")
     async def infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
         infraction_string = ""
-        embed = disnake.Embed(title="Infractions")
-        infractions_list = db.get_infractions(user.id)
-        await inter.send(infractions_list)
+        embeds = []
+        infractions_list = db.get_infractions(user.id) #All infractions of a user in one list
+        divided_infraction_list = list(pagination.divide_list(infractions_list, 5)) #All infraction divided in lists of length 10 (so we can paginate)
+        for infraction_list in divided_infraction_list:
+            embed = disnake.Embed(title=f"Infractions of {user.name}", description=infraction_string)
+            embeds.append(embed)
+            for index, infraction in enumerate(infraction_list):
+                #indexes represent location of column in infraction log table
+                time_of_infraction = infraction[1].strftime("%m/%d/%Y, %H:%M:%S")
+                reason = infraction[2]
+                issued_by_id = infraction[3]
+                infraction_type = infraction[4]
+                embed.add_field(name = f"{index+1})" , value = f"Time of infraction:`{time_of_infraction}`\nType: `{infraction_type}`\nReason: `{reason}`\nIssued by: <@{issued_by_id}>",inline=False)
+        
+
+        await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+        
         
                 
             

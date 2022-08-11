@@ -22,7 +22,7 @@ def restore_database():
     moderation.c.execute("""CREATE TABLE IF NOT EXISTS infraction_log
     (
     user_id INTEGER,
-    time DATETIME,
+    time TIMESTAMP,
     reason TEXT,
     issued_by_id INTEGER,
     infraction_type TEXT,

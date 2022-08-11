@@ -10,7 +10,7 @@ class database:
         """
         Starts connection to database and creating cursor.
         """
-        self.conn = sqlite3.connect(self.database) 
+        self.conn = sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES) #detect_types so time type is datetime
         self.c = self.conn.cursor() 
         
 
@@ -135,16 +135,16 @@ def infraction_log(user_id:int, infraction_type:str, reason_message:str, issued_
     db.close()
     
 def ban_log(user_id:int, reason_message:str, issued_by_id:int):
-    infraction_log(user_id, "ban_log", reason_message, issued_by_id)
+    infraction_log(user_id, "Ban", reason_message, issued_by_id)
     
 def mute_log(user_id:int, reason_message:str, issued_by_id:int):
-    infraction_log(user_id, "mute_log", reason_message, issued_by_id)
+    infraction_log(user_id, "Mute", reason_message, issued_by_id)
     
 def kick_log(user_id:int, reason_message:str, issued_by_id:int):
-    infraction_log(user_id, "kick_log", reason_message, issued_by_id)
+    infraction_log(user_id, "Kick", reason_message, issued_by_id)
     
 def warn_log(user_id:int, reason_message:str, issued_by_id:int):
-    infraction_log(user_id, "warn_log", reason_message, issued_by_id)
+    infraction_log(user_id, "Warn", reason_message, issued_by_id)
     
     
 def get_infractions(user_id:int):
