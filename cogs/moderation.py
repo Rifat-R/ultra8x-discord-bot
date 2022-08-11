@@ -63,11 +63,12 @@ class Moderation(commands.Cog):
     @commands.slash_command(description="Gives user a timeout")
     async def mute(self, inter, member: disnake.Member, time:int, *, reason="No reason has been given"):
         await member.timeout(duration=time)
+        muted_until = member.current_timeout.strftime("%m/%d/%Y, %H:%M:%S")
         db.mute_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
         embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
         embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
-        embed.add_field(name="Muted until: ", value=f"**{member.current_timeout}**", inline=False)
+        embed.add_field(name="Muted until: ", value=f"**{muted_until}**", inline=False)
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await inter.send(embed=embed)
         
@@ -135,7 +136,17 @@ class Moderation(commands.Cog):
                 embed.add_field(name = f"{index+1})" , value = f"Time of infraction:`{time_of_infraction}`\nType: `{infraction_type}`\nReason: `{reason}`\nIssued by: <@{issued_by_id}>",inline=False)
         
 
-        await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+        if len(embeds) == 0:
+            await inter.send(f"User has no infractions ✅", ephemeral=True)
+        else:
+            await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+            
+            
+    @commands.slash_command(description="Removes ALL user infractions")
+    async def remove_infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
+        db.remove_infraction(user.id)
+        await inter.send(f"Removed infractions from user {user.mention} ✅", ephemeral = True)
+        
         
         
                 

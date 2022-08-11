@@ -154,64 +154,9 @@ def get_infractions(user_id:int):
     infraction_list = db.c.fetchall()
     return infraction_list
 
-# def ban_log(user_id:int, reason_message:str, issued_by_id:int):
-#     time = datetime.now() 
-    
-#     db = database(MODERATION)
-#     db.start_connection()
-#     db.c.execute(f"INSERT INTO ban_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
-#     db.commit()
-#     db.close()
-    
-    
-# def kick_log(user_id:int, reason_message:str, issued_by_id:int):
-#     time = datetime.now() 
-    
-#     db = database(MODERATION)
-#     db.start_connection()
-#     db.c.execute(f"INSERT INTO kick_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
-#     db.commit()
-#     db.close()
-    
-    
-# def mute_log(user_id:int, reason_message:str, duration:int, issued_by_id:int):
-#     """Logs mute infraction
-
-#     Args:
-#         user_id (int): Discord id of the user who recieved the mute infraction
-#         reason_message (str): Reason for mute
-#         duration (int): Duration must be set in seconds
-#         issued_by_id (int): Discord id of the user who issued the mute infraction.
-#     """
-#     time = datetime.now()
-#     db = database(MODERATION)
-#     db.start_connection()
-#     db.c.execute(f"INSERT INTO mute_log VALUES (?,?,?,?,?)",(user_id, reason_message, duration, issued_by_id, time,))
-#     db.commit()
-#     db.close()
-    
-    
-# def warn_log(user_id:int, reason_message:str, issued_by_id:int):
-#     time = datetime.now()
-#     db = database(MODERATION)
-#     db.start_connection()
-#     db.c.execute(f"INSERT INTO warn_log VALUES (?,?,?,?)",(user_id, reason_message, issued_by_id, time,))
-#     db.commit()
-#     db.close()
-    
-    
-# def get_infractions(user_id:int):
-#     db = database(MODERATION)
-#     db.start_connection()
-#     db.c.execute(f"SELECT * FROM ban_log WHERE user_id = ?", (user_id, ))
-#     ban_log_list = db.c.fetchall()
-#     db.c.execute(f"SELECT * FROM kick_log WHERE user_id = ?", (user_id, ))
-#     kick_log_list = db.c.fetchall()
-#     db.c.execute(f"SELECT * FROM mute_log WHERE user_id = ?", (user_id, ))
-#     mute_log_list = db.c.fetchall()
-#     db.c.execute(f"SELECT * FROM warn_log WHERE user_id = ?", (user_id, ))
-#     warn_log_list = db.c.fetchall()
-#     db.close()
-#     infraction_log = ban_log_list + kick_log_list + mute_log_list + warn_log_list
-#     return infraction_log
-    
+def remove_infraction(user_id:int):
+    db = database(MODERATION)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM infraction_log WHERE user_id = ? ",(user_id, ))
+    db.commit()
+    db.close()

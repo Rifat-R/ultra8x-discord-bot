@@ -9,6 +9,10 @@ class Menu(disnake.ui.View):
 
         self.first_page.disabled = True
         self.prev_page.disabled = True
+        
+        if len(embeds) == 1:
+            self.next_page.disabled = True
+            self.last_page.disabled = True
 
         # Sets the footer of the embeds with their respective page numbers.
         for i, embed in enumerate(self.embeds):
