@@ -11,7 +11,9 @@ def restore_database():
     (
     user_id INTEGER PRIMARY KEY,
     wallet INTEGER DEFAULT 0,
-    bank INTEGER DEFAULT 0
+    bank INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 0,
+    xp INTEGER DEFAULT 0
     ) 
     """)
     player_data.conn.commit()
