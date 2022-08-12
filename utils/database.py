@@ -5,26 +5,20 @@ class database:
     def __init__(self, database):
         self.database = database
         
-
     def start_connection(self):
         """
         Starts connection to database and creating cursor.
         """
         self.conn = sqlite3.connect(self.database, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES) #detect_types so time type is datetime
         self.c = self.conn.cursor() 
-        
 
     def close(self):
         """Closes connection to database"""
         self.conn.close() 
         
-
     def commit(self):
         """Commits transaction in database"""
         self.conn.commit() 
-
-
-
 
 PLAYER_DATA = "player_data.db"
 
@@ -124,6 +118,15 @@ def bank(user_id:int) -> int:
     return db.c.fetchone()[0]
 
 
+def check_user(user_id:int) -> bool:
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM user_data WHERE user_id = {user_id}")
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+
 #Logging system
 def infraction_log(user_id:int, infraction_type:str, reason_message:str, issued_by_id:int):
     time = datetime.now() 
@@ -161,6 +164,8 @@ def remove_infraction(user_id:int):
     db.close()
     
     
+#Levelling functions
+    
 def get_level(user_id:int):
     db = database(PLAYER_DATA)
     db.start_connection()
@@ -180,6 +185,13 @@ def add_xp(user_id:int, xp:int):
     db.c.execute(f"UPDATE user_data SET xp = xp + ? WHERE user_id = ?", (xp, user_id,))
     db.commit()
     db.close()
+    
+def remove_xp(user_id:int, xp:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET xp = xp - ? WHERE user_id = ?", (xp, user_id,))
+    db.commit()
+    db.close()
 
 def add_level(user_id:int, level:int):
     db = database(PLAYER_DATA)
@@ -187,3 +199,10 @@ def add_level(user_id:int, level:int):
     db.c.execute(f"UPDATE user_data SET level = level + ? WHERE user_id = ?", (level, user_id,))
     db.commit()
     db.close()
+
+def get_leaderboard():
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT user_id, level, xp FROM user_data ORDER BY xp DESC LIMIT 30")
+    infraction_list = db.c.fetchall()
+    return infraction_list

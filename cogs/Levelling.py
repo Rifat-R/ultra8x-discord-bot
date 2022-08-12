@@ -1,7 +1,6 @@
 from disnake.ext import commands, tasks
 import disnake
-from utils import database as db, funcs
-import math
+from utils import database as db, funcs, pagination
 
 class Levelling(commands.Cog):
 
@@ -20,6 +19,29 @@ class Levelling(commands.Cog):
         embed.add_field(name=f"Current XP: ", value=f"`{xp}`", inline=False)
         embed.add_field(name=f"Next Level XP: ", value=f"`{next_level_xp}`", inline=False)
         await inter.send(embed=embed)
+        
+    @commands.slash_command(description="Shows the rank leaderboard")
+    async def leaderboard(self, inter:disnake.CommandInteraction):
+        user = inter.author
+
+        leaderboard_string = ""
+        embeds = []
+        leaderboard_list = db.get_leaderboard()
+        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 10 (so we can paginate)
+        for leaderboard in divived_leaderboard_list:
+            embed = disnake.Embed(title=f"Ranking Leaderboard", description=leaderboard_string)
+            embeds.append(embed)
+            for index, row in enumerate(leaderboard):
+                #indexes represent location of column in row log table
+                user_mention = f"<@{row[0]}>"
+                level = row[1]
+                xp = row[2]
+                embed.add_field(name = f"{index+1})" , value = f"User: {user_mention}\nLevel: `{level}`\nXP: `{xp}`\n",inline=False)
+                
+        if len(embeds) == 0:
+            await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
+        else:
+            await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
 def setup(bot):
     bot.add_cog(Levelling(bot))
