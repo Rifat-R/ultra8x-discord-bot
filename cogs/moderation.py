@@ -2,8 +2,7 @@ import disnake
 from disnake.ext import commands
 from disnake.utils import get
 from utils import database as db, pagination
-
-
+from utils import funcs
 
 unmuted_ids = []
 
@@ -16,7 +15,7 @@ class Moderation(commands.Cog):
         
     @commands.slash_command(description="Warns a member in the server")
     async def warn(self, inter, member:disnake.Member, *, reason="No reason has been given"):
-        db.warn_log(member.id, reason, inter.author.id)
+        await db.warn_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Warn", color= self.EMBED_COLOR)
         embed.add_field(name="User warned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
         embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
@@ -51,7 +50,7 @@ class Moderation(commands.Cog):
             reason (str, optional): The reason for the kick. Defaults to "No reason has been given".
         """
         await member.ban(reason=reason)
-        db.ban_log(member.id, reason, inter.author.id)
+        await db.ban_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Ban", color= self.EMBED_COLOR)
         embed.add_field(name="User banned:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
         embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
@@ -64,7 +63,7 @@ class Moderation(commands.Cog):
     async def mute(self, inter, member: disnake.Member, time:int, *, reason="No reason has been given"):
         await member.timeout(duration=time)
         muted_until = member.current_timeout.strftime("%m/%d/%Y, %H:%M:%S")
-        db.mute_log(member.id, reason, inter.author.id)
+        await db.mute_log(member.id, reason, inter.author.id)
         embed = disnake.Embed(title="Mute", description=f"{member.mention} has been tempmuted ", color= self.EMBED_COLOR)
         embed.add_field(name="User muted:", value=f"**{member.display_name}** a.k.a **{member.name}**", inline=False)
         embed.add_field(name="Action issued by:", value=f"**{inter.author.display_name}**", inline=False)
@@ -108,12 +107,14 @@ class Moderation(commands.Cog):
         user_id = user.id
         username = user.name
         user_pfp = user.avatar.url
-        user_joined_at = user.joined_at.strftime("%m/%d/%Y, %H:%M:%S")
+        user_joined_at = funcs.parse_date(user.joined_at)
+        created_at = funcs.parse_date(user.created_at)
         embed= disnake.Embed(title=f"User Information", 
                              description=f"\
                              Username: `{username}`\n\
                              User ID: `{user_id}`\n\
                              Joined at: `{user_joined_at}`\n\
+                             Created at: `{created_at}`\n\
                              ")
         embed.set_thumbnail(user_pfp)
         await inter.send(embed=embed)
@@ -122,14 +123,18 @@ class Moderation(commands.Cog):
     async def infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
         infraction_string = ""
         embeds = []
-        infractions_list = db.get_infractions(user.id) #All infractions of a user in one list
+        try:
+            infractions_list = await db.get_infractions(user.id) #All infractions of a user in one list
+        except TypeError:
+            await inter.send(f"User has no infractions ✅", ephemeral=True)
+            return 
         divided_infraction_list = list(pagination.divide_list(infractions_list, 5)) #All infraction divided in lists of length 10 (so we can paginate)
         for infraction_list in divided_infraction_list:
             embed = disnake.Embed(title=f"Infractions of {user.name}", description=infraction_string)
             embeds.append(embed)
             for index, infraction in enumerate(infraction_list):
                 #indexes represent location of column in infraction log table
-                time_of_infraction = infraction[1].strftime("%m/%d/%Y, %H:%M:%S")
+                time_of_infraction = funcs.parse_date(infraction[1])
                 reason = infraction[2]
                 issued_by_id = infraction[3]
                 infraction_type = infraction[4]
@@ -144,7 +149,7 @@ class Moderation(commands.Cog):
             
     @commands.slash_command(description="Removes ALL user infractions")
     async def remove_infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
-        db.remove_infraction(user.id)
+        await db.remove_infraction(user.id)
         await inter.send(f"Removed infractions from user {user.mention} ✅", ephemeral = True)
         
         

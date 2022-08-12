@@ -20,7 +20,7 @@ for filename in os.listdir("./cogs"):
 
 
 async def tasks():
-    init_database.restore_database() 
+    await init_database.restore_database() 
     
 
 def main():

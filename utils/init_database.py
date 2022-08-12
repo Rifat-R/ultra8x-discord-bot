@@ -1,13 +1,12 @@
-from utils import database as db
-
-player_data = db.database("player_data.db")
-moderation = db.database("moderation_logs.db")
+import aiosqlite
 
 
-def restore_database():
-    
-    player_data.start_connection()
-    player_data.c.execute("""CREATE TABLE IF NOT EXISTS user_data
+PLAYER_DATA = "player_data.db"
+
+async def restore_database():
+    conn = await aiosqlite.connect(PLAYER_DATA) #detect_types so time type is datetime  
+    c = await conn.cursor() 
+    await c.execute("""CREATE TABLE IF NOT EXISTS user_data
     (
     user_id INTEGER PRIMARY KEY,
     wallet INTEGER DEFAULT 0,
@@ -16,12 +15,9 @@ def restore_database():
     xp INTEGER DEFAULT 0
     ) 
     """)
-    player_data.conn.commit()
-    
+    await conn.commit()
 
-
-    moderation.start_connection()
-    moderation.c.execute("""CREATE TABLE IF NOT EXISTS infraction_log
+    await c.execute("""CREATE TABLE IF NOT EXISTS infraction_log
     (
     user_id INTEGER,
     time TIMESTAMP,
@@ -31,8 +27,8 @@ def restore_database():
     PRIMARY KEY (user_id, time)
     ) 
     """)
-    moderation.commit()
-    moderation.close()
+    await conn.commit()
+    await conn.close()
     
     # moderation.c.execute("""CREATE TABLE IF NOT EXISTS ban_log
     # (

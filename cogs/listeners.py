@@ -1,6 +1,7 @@
 from disnake.ext import commands
 from utils import database as db
-import sqlite3
+import asyncio
+import aiosqlite
 
 class listeners_Cog(commands.Cog):
 
@@ -9,13 +10,13 @@ class listeners_Cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
         if not message.author.bot:
-            db.add_xp(message.author.id, 10)
+            print("bom")
+            await db.add_xp(message.author.id, 10)
             try:
-                db.create(message.author.id)
+                await db.create(message.author.id)
                 print(f"User {message.author.id} has been created and stored in user_data table.")
-            except(sqlite3.IntegrityError):
+            except(aiosqlite.IntegrityError):
                 pass
 
 def setup(bot):
