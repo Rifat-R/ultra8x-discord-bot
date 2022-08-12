@@ -1,9 +1,9 @@
 import disnake
 from disnake.ext import commands
 import os
-from utils import init_database
+from utils import init_database, constants as const
 
-BOT_KEY = 'NzQwMTg1NTk2NTI1NTQzNDI0.G92hI3.qvqaed90aJW9xKJWx9mwq5dDL5KLxYaKWihGiw'
+BOT_KEY = const.BOT_KEY
 
 intents = disnake.Intents.default()
 intents.members = True  

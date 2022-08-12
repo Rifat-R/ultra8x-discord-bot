@@ -27,7 +27,6 @@ class database:
 
 
 PLAYER_DATA = "player_data.db"
-MODERATION = "moderation_logs.db"
 
 def update_wallet(user_id:int,money:int):
     """Adds money to a user's wallet in the user_data table
@@ -128,7 +127,7 @@ def bank(user_id:int) -> int:
 #Logging system
 def infraction_log(user_id:int, infraction_type:str, reason_message:str, issued_by_id:int):
     time = datetime.now() 
-    db = database(MODERATION)
+    db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"INSERT INTO infraction_log VALUES (?,?,?,?,?)",(user_id, time, reason_message, issued_by_id, infraction_type,))
     db.commit()
@@ -148,14 +147,14 @@ def warn_log(user_id:int, reason_message:str, issued_by_id:int):
     
     
 def get_infractions(user_id:int):
-    db = database(MODERATION)
+    db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"SELECT * FROM infraction_log WHERE user_id = ? ORDER BY time DESC",(user_id, ))
     infraction_list = db.c.fetchall()
     return infraction_list
 
 def remove_infraction(user_id:int):
-    db = database(MODERATION)
+    db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"DELETE FROM infraction_log WHERE user_id = ? ",(user_id, ))
     db.commit()
@@ -182,3 +181,9 @@ def add_xp(user_id:int, xp:int):
     db.commit()
     db.close()
 
+def add_level(user_id:int, level:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET level = level + ? WHERE user_id = ?", (level, user_id,))
+    db.commit()
+    db.close()

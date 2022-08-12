@@ -1,7 +1,6 @@
 from utils import database as db
 
 player_data = db.database("player_data.db")
-moderation = db.database("moderation_logs.db")
 
 
 def restore_database():
@@ -20,8 +19,8 @@ def restore_database():
     
 
 
-    moderation.start_connection()
-    moderation.c.execute("""CREATE TABLE IF NOT EXISTS infraction_log
+    player_data.start_connection()
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS infraction_log
     (
     user_id INTEGER,
     time TIMESTAMP,
@@ -31,8 +30,8 @@ def restore_database():
     PRIMARY KEY (user_id, time)
     ) 
     """)
-    moderation.commit()
-    moderation.close()
+    player_data.commit()
+    player_data.close()
     
     # moderation.c.execute("""CREATE TABLE IF NOT EXISTS ban_log
     # (

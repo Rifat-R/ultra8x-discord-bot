@@ -1,6 +1,9 @@
 from disnake.ext import commands
-from utils import database as db
+import disnake
+from utils import database as db, constants as const, funcs
 import sqlite3
+import math
+
 
 class listeners_Cog(commands.Cog):
 
@@ -8,13 +11,21 @@ class listeners_Cog(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        
+    async def on_message(self, message:disnake.Message):
+        user_id = message.author.id
         if not message.author.bot:
-            db.add_xp(message.author.id, 10)
+            db.add_xp(user_id, 10)
+            current_level = db.get_level(user_id)
+            exact_level = funcs.get_exact_level(user_id)
+            print(exact_level)
+            if exact_level - 1 >= current_level:
+                level_added = math.floor((exact_level)) - current_level
+                db.add_level(user_id, level_added)
+                new_level = db.get_level(user_id)
+                await message.channel.send(f"You have increased by {level_added} Level! You are now Level {new_level}")
             try:
-                db.create(message.author.id)
-                print(f"User {message.author.id} has been created and stored in user_data table.")
+                db.create(user_id)
+                print(f"User {user_id} has been created and stored in user_data table.")
             except(sqlite3.IntegrityError):
                 pass
 

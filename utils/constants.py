@@ -1,7 +1,7 @@
-#Graphics.
-POKEBALL = "https://cdn.discordapp.com/attachments/510144275712049152/830146265445826600/pokeball6.png"
 
-#Emojis.
-BINGUSBOIN = "<:bingusboin:821807084390973470>"
-WALLET_EMOJI = "<:wallet:807660401352376381>"
-BANK_EMOJI = "<:BankB:805922386037440512>"
+
+BOT_KEY = "NzQwMTg1NTk2NTI1NTQzNDI0.G92hI3.qvqaed90aJW9xKJWx9mwq5dDL5KLxYaKWihGiw"
+
+#For Levelling System
+STARTING_VALUE = 800
+MULTIPLIER = 1.25
