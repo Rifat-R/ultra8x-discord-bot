@@ -28,8 +28,8 @@ class Economy(commands.Cog):
         if amount > 0: 
             if amount <= wallet_balance: 
                 
-                db.deduct_wallet(ctx.author.id, amount) 
-                db.update_wallet(user.id, amount) 
+                await db.deduct_wallet(ctx.author.id, amount) 
+                await db.update_wallet(user.id, amount) 
                 await ctx.send(f"{ctx.author.mention} has paid {user.mention} **{amount:,}**.") 
                 
             else:
@@ -49,7 +49,7 @@ class Economy(commands.Cog):
             if wallet_balance == 0: 
                 await inter.send(f"<@{inter.author.id}> You do **not** have any funds to deposit!")
             else:
-                db.update_bank(inter.author.id, wallet_balance) 
+                await db.update_bank(inter.author.id, wallet_balance) 
                 await inter.send(f"<@{inter.author.id}> You have deposited **{wallet_balance:,}**. " + 
                                f"Current wallet balance **{bank_balance:,}**.")
                 db.deduct_wallet(inter.author.id,wallet_balance) 
@@ -62,8 +62,8 @@ class Economy(commands.Cog):
                     await inter.send(f"<@{inter.author.id}> You do not have the necessary funds to deposit.")			
                 else:
                     
-                    db.update_bank(inter.author.id, num_int)
-                    db.deduct_wallet(inter.author.id, num_int)
+                    await db.update_bank(inter.author.id, num_int)
+                    await db.deduct_wallet(inter.author.id, num_int)
                     await inter.send(f"<@{inter.author.id}> You have deposited **{num_int:,}**. "
                                    +f"Current bank balance **{bank_balance:,}**.")		
             else:
@@ -78,7 +78,7 @@ class Economy(commands.Cog):
             if bank_balance == 0: 
                 await inter.send(f"<@{inter.author.id}> You do **not** have any funds to withdraw!")
             else: 
-                db.update_wallet(inter.author.id,bank_balance) 
+                await db.update_wallet(inter.author.id,bank_balance) 
                 await inter.send(f"<@{inter.author.id}> You have withdrawn **{bank_balance:,}**. "+
                                f"Current wallet balance **{wallet_balance:,}**.")
                 db.deduct_bank(inter.author.id,bank_balance) 
@@ -88,7 +88,7 @@ class Economy(commands.Cog):
                 if amount_transferred > bank_balance:
                     await inter.send(f"<@{inter.author.id}> You can only **withdraw** **{bank_balance:,}** or less.")			
                 else:
-                    db.update_wallet(inter.author.id, amount_transferred)
+                    await db.update_wallet(inter.author.id, amount_transferred)
                     db.deduct_bank(inter.author.id, amount_transferred)
                     await inter.send(f"<@{inter.author.id}> You have withdrawn **{amount_transferred:,}**. "+
                                    f"Current wallet balance **{wallet_balance:,}**.")		
