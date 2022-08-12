@@ -22,3 +22,4 @@ def get_next_level_xp(user_id:int) -> int:
     next_level_xp = int(round(next_level_xp, -1))
     return next_level_xp
      
+    

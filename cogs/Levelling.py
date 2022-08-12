@@ -42,6 +42,17 @@ class Levelling(commands.Cog):
             await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+            
+            
+    @commands.slash_command(description="Add XP to user")
+    async def add_xp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
+        db.add_xp(user.id, xp)
+        await inter.send(f"Added {xp} to {user.mention}", ephemeral=True)
+        
+    @commands.slash_command(description="Add XP to user")
+    async def remove_xp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
+        db.remove_xp(user.id, xp)
+        await inter.send(f"Removed {xp} from {user.mention}", ephemeral=True)
 
 def setup(bot):
     bot.add_cog(Levelling(bot))
