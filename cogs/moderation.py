@@ -109,11 +109,13 @@ class Moderation(commands.Cog):
         username = user.name
         user_pfp = user.avatar.url
         user_joined_at = user.joined_at.strftime("%m/%d/%Y, %H:%M:%S")
-        embed= disnake.Embed(title=f"User Information", 
+        user_created_at = user.created_at.strftime("%m/%d/%Y, %H:%M:%S")
+        embed = disnake.Embed(title=f"User Information", 
                              description=f"\
                              Username: `{username}`\n\
                              User ID: `{user_id}`\n\
                              Joined at: `{user_joined_at}`\n\
+                             Created at: `{user_created_at}`\n\
                              ")
         embed.set_thumbnail(user_pfp)
         await inter.send(embed=embed)

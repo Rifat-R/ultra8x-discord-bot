@@ -23,7 +23,6 @@ class Levelling(commands.Cog):
     @commands.slash_command(description="Shows the rank leaderboard")
     async def leaderboard(self, inter:disnake.CommandInteraction):
         user = inter.author
-
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_leaderboard()
@@ -37,22 +36,40 @@ class Levelling(commands.Cog):
                 level = row[1]
                 xp = row[2]
                 embed.add_field(name = f"{index+1})" , value = f"User: {user_mention}\nLevel: `{level}`\nXP: `{xp}`\n",inline=False)
-                
         if len(embeds) == 0:
             await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
-            
-            
+
     @commands.slash_command(description="Add XP to user")
-    async def add_xp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
+    async def addxp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
         db.add_xp(user.id, xp)
         await inter.send(f"Added {xp} to {user.mention}", ephemeral=True)
         
     @commands.slash_command(description="Add XP to user")
-    async def remove_xp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
+    async def removexp(self, inter:disnake.CommandInteraction, user:disnake.Member, xp:int):
         db.remove_xp(user.id, xp)
         await inter.send(f"Removed {xp} from {user.mention}", ephemeral=True)
-
+        
+    @commands.slash_command(description="Shows player profile")
+    async def profile(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        username = user.name
+        user_joined_at = user.joined_at.strftime("%m/%d/%Y, %H:%M:%S")
+        user_created_at = user.created_at.strftime("%m/%d/%Y, %H:%M:%S")
+        level = db.get_level(user.id)
+        xp = db.get_xp(user.id)
+        next_level_xp = funcs.get_next_level_xp(user.id)
+        embed = disnake.Embed(title=f"User Profile", 
+                             description=f"\
+                             Username: `{username}`\n\
+                             User ID: `{user.id}`\n\
+                             Joined at: `{user_joined_at}`\n\
+                             Created at: `{user_created_at}`\n\
+                             Level: `{level}`\n\
+                             XP: `{xp}/{next_level_xp}`\n\
+                             ")
+        embed.set_thumbnail(url=user.display_avatar)
+        await inter.send(embed=embed)
 def setup(bot):
     bot.add_cog(Levelling(bot))

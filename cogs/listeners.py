@@ -18,13 +18,11 @@ class listeners_Cog(commands.Cog):
                 db.add_xp(user_id, 10)
                 current_level = db.get_level(user_id)
                 exact_level = funcs.get_exact_level(user_id)
-                print(exact_level)
-                if exact_level - 1 >= current_level:
+                if (exact_level-1) >= current_level:
                     level_added = math.floor((exact_level)) - current_level
                     db.add_level(user_id, level_added)
                     new_level = db.get_level(user_id)
                     await message.channel.send(f"You have increased by {level_added} Level! You are now Level {new_level}")
-                    
             else:
                 db.create(user_id)
                 db.add_xp(user_id, 10)

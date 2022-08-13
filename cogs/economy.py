@@ -93,6 +93,14 @@ class Economy(commands.Cog):
                 await ctx.send(f"<@{ctx.author.id}> Please enter a valid **number**!")
                 
                 
+    @commands.slash_command(description="Work for money. One hour cooldown")
+    @commands.cooldown(1,3600,type=commands.BucketType.user)
+    async def work(self, inter:disnake.CommandInteraction):
+        amount_of_money = 5000
+        db.update_wallet(inter.author.id, amount_of_money)
+        await inter.send(f"You worked and gained **{amount_of_money}**. Enjoy!", ephemeral=True)
+                
+                
     @commands.slash_command()
     @commands.cooldown(1,86400,type=commands.BucketType.user)
     async def daily(self, ctx):
@@ -122,18 +130,25 @@ class Economy(commands.Cog):
         db.update_wallet(338764415358861314,1000000)
         
 
+#Error handlers
 
     @daily.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the beg command."""
         if isinstance(error, commands.CommandOnCooldown): 
-            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 3600, 1)} hours.")
+            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 3600, 1)} hours.", ephemeral=True)
             
     @weekly.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the beg command."""
         if isinstance(error, commands.CommandOnCooldown): 
-            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 86400, 1)} days.")
+            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 86400, 1)} days.", ephemeral=True)
+            
+    @work.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors for the beg command."""
+        if isinstance(error, commands.CommandOnCooldown): 
+            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 60, 1)} minutes.", ephemeral=True)
 
 
 def setup(bot):
