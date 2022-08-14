@@ -9,6 +9,7 @@ def restore_database():
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS user_data
     (
     user_id INTEGER PRIMARY KEY,
+    author TEXT,
     wallet INTEGER DEFAULT 0,
     bank INTEGER DEFAULT 0,
     level INTEGER DEFAULT 0,

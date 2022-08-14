@@ -2,7 +2,7 @@ import disnake
 from disnake.ext import commands
 import random
 import asyncio
-from utils import database as db, constants as const, blackjack
+from utils import database as db, constants as const, blackjack, pagination
 
 class Economy(commands.Cog):
 
@@ -97,6 +97,27 @@ class Economy(commands.Cog):
                 await ctx.send(f"<@{ctx.author.id}> Please enter a valid **number**!")
                 
                 
+    @commands.slash_command(description="Get top 10 richest players")
+    async def rich(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        leaderboard_string = ""
+        embeds = []
+        leaderboard_list = db.get_rich_leaderboard()
+        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 10 (so we can paginate)
+        for leaderboard in divived_leaderboard_list:
+            embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string)
+            embeds.append(embed)
+            for index, row in enumerate(leaderboard):
+                #indexes represent location of column in row log table
+                user_mention = f"`{row[0]}`"
+                networth = row[1]
+                embed.add_field(name = f"{index+1})" , value = f"User: {user_mention}\n Networth: `{networth:,}`\n",inline=False)
+        if len(embeds) == 0:
+            await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
+        else:
+            await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+                
+                
     @commands.slash_command(description="Blackjack game")
     async def blackjack(self, inter:disnake.CommandInteraction, bet:int):
         """
@@ -114,19 +135,21 @@ class Economy(commands.Cog):
             await inter.send(f"You do not have {bet} in your wallet!", ephemeral=True)
             return
         
-    
+        db.deduct_wallet(user.id, bet)
         bj = blackjack.blackjack(inter, self.bot.user.name, bet)
+        description = f"You are now betting **{bet:,}**"
         
-        embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards)
+        embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards, description=description)
 
         await inter.send(embed=embed,view=bj)
     
     @commands.command()
     async def test(self, ctx):
-        embed = disnake.Embed()
-        embed.set_author(name="test", value="[asdsad](https://google.com)")
-        await ctx.send(embed=embed)
-        
+        # embed = disnake.Embed()
+        # embed.set_author(name="test", value="[asdsad](https://google.com)")
+        # await ctx.send(embed=embed)
+        await ctx.send(ctx.author)
+    
                 
                 
     @commands.slash_command(description="Work for money. One hour cooldown")

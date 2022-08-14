@@ -70,10 +70,13 @@ class blackjack(disnake.ui.View):
                     self.bot_cards.append(self.get_random_card())
                     bot_total = self.get_total(self.bot_cards)
                     if bot_total == user_total:
-                        description += "Ended up in a draw"
+                        description += "Ended up in a draw. You don't gain/lose money."
+                        db.update_wallet(self.inter.author.id, self.bet)
                         break
                     else:
-                        description += "You have won! Congratulations."
+                        amount_won = self.bet*2
+                        description += f"You won **{amount_won:,}**. Congratulations!"
+                        db.update_wallet(self.inter.author.id, amount_won)
                         break
                 self.hit.disabled = True
                 self.stand.disabled = True
@@ -82,7 +85,7 @@ class blackjack(disnake.ui.View):
                 self.game_finished = True
                 
             if user_total > 21:
-                description = "You lost!"
+                description = f"You lost **{self.bet:,}**. Better luck next time!"
                 self.bot_cards.pop(-1)
                 self.bot_cards.append(self.get_random_card())
                 self.hit.disabled = True
@@ -111,14 +114,18 @@ class blackjack(disnake.ui.View):
                 bot_total = self.get_total(self.bot_cards)
                 if bot_total <= 21:
                     if bot_total > user_total:
-                        description += "You lost!"
+                        amount_lost = self.bet
+                        description += f"You lost **{amount_lost:,}**. Better luck next time!"
                         break
                     if bot_total == user_total:
                         if bot_total == 21:
-                            description += "Ended up in a draw."
+                            description += "Ended up in a draw. You don't gain/lose money."
+                            db.update_wallet(self.inter.author.id, self.bet)
                             break
                 else:
-                    description += "You won!"
+                    amount_won = self.bet*2
+                    description += f"You won **{amount_won:,}**. Congratulations!"
+                    db.update_wallet(self.inter.author.id, amount_won)
                     break
                     
             self.hit.disabled = True

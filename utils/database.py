@@ -74,7 +74,7 @@ def deduct_bank(user_id:int,money:int):
     db.conn.commit()
     db.conn.close()
 
-def create(user_id:int):
+def create(user_id:int, author:str):
     """Creates a blank account for the user in the user_data table.
     This makes sure the other functions will be able to work or else
     they will not work due to the user not existing in the database.
@@ -84,10 +84,25 @@ def create(user_id:int):
     """
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"INSERT INTO user_data (user_id) VALUES (?)",(user_id,))
+    db.c.execute(f"INSERT INTO user_data (user_id, author) VALUES (?, ?)",(user_id, author))
     db.conn.commit()
     db.conn.close()
     print(f"Created new account for user {user_id}")
+    
+def update_author(user_id:int, author:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET author = ? WHERE user_id = ?", (author, user_id))
+    db.conn.commit()
+    db.conn.close()
+    
+def get_author(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.start_connection()
+    db.c.execute(f"SELECT author FROM user_data WHERE user_id = {user_id}")
+    return db.c.fetchone()[0]
+
 
 def wallet(user_id:int) -> int:
     """Returns the wallet content.
@@ -116,6 +131,19 @@ def bank(user_id:int) -> int:
     db.start_connection()
     db.c.execute(f"SELECT bank FROM user_data WHERE user_id = {user_id}")
     return db.c.fetchone()[0]
+
+def get_rich_leaderboard():
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT author, (wallet + bank) as networth FROM user_data ORDER BY networth DESC LIMIT 30")
+    rich_list = db.c.fetchall()
+    return rich_list
+
+# def get_networth(user_id:int):
+#     db = database(PLAYER_DATA)
+#     db.start_connection()
+#     db.c.execute(f"SELECT wallet FROM user_data WHERE user_id = {user_id}")
+#     return db.c.fetchone()[0]
 
 
 def check_user(user_id:int) -> bool:
@@ -203,6 +231,6 @@ def add_level(user_id:int, level:int):
 def get_leaderboard():
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"SELECT user_id, level, xp FROM user_data ORDER BY xp DESC LIMIT 30")
+    db.c.execute(f"SELECT author, level, xp FROM user_data ORDER BY xp DESC LIMIT 30")
     infraction_list = db.c.fetchall()
     return infraction_list

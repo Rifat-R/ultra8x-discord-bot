@@ -32,7 +32,7 @@ class Levelling(commands.Cog):
             embeds.append(embed)
             for index, row in enumerate(leaderboard):
                 #indexes represent location of column in row log table
-                user_mention = f"<@{row[0]}>"
+                user_mention = f"`{row[0]}`"
                 level = row[1]
                 xp = row[2]
                 embed.add_field(name = f"{index+1})" , value = f"User: {user_mention}\nLevel: `{level}`\nXP: `{xp}`\n",inline=False)
