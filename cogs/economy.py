@@ -1,8 +1,7 @@
 import disnake
 from disnake.ext import commands
-import random
-import asyncio
 from utils import database as db, constants as const, blackjack, pagination, funcs
+import sqlite3
 
 class Economy(commands.Cog):
 
@@ -118,7 +117,39 @@ class Economy(commands.Cog):
             await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
-                
+            
+            
+            
+    @commands.slash_command(description="Buy an item from the shop")
+    async def buy(self, inter:disnake.CommandInteraction, item_name):
+        user = inter.author
+        item_name = item_name.lower()
+        item_price = funcs.get_item_buy_price(item_name)
+        wallet_balance = db.wallet(user.id)
+        if wallet_balance < item_price:
+            await inter.send(f"You don't have enough money to buy this item!", ephemeral=True)
+            return
+        
+        try:
+            db.buy_item(user.id, item_name)
+        except(sqlite3.IntegrityError):
+            await inter.send(f"You already have that item in your inventory!", ephemeral=True)
+            return
+            
+        await inter.send(f"You have bought {item_name} for {item_price}.")
+        
+    @commands.slash_command(description="Sell your item in your inventory")
+    async def sell(self, inter:disnake.CommandInteraction, item_name):
+        item_name = item_name.lower()
+        user = inter.author
+        
+        if len(db.get_item(user.id, item_name)) == 0:
+            await inter.send(f"You do not have that item in your inventory!", ephemeral=True)
+            return
+        db.sell_item(inter.author.id, item_name)
+        await inter.send(f"You have sold {item_name} for {funcs.get_item_sell_price(item_name)}.")
+    
+
                 
     @commands.slash_command(description="Blackjack game")
     async def blackjack(self, inter:disnake.CommandInteraction, bet:int):
@@ -181,14 +212,6 @@ class Economy(commands.Cog):
         db.update_wallet(ctx.author.id, AMOUNT)
         await ctx.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
         
-
-    
-    
-    
-    
-    
-    
-
 
 
     @commands.command()

@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from utils import funcs
 
 class database:
     def __init__(self, database):
@@ -139,12 +140,33 @@ def get_rich_leaderboard():
     rich_list = db.c.fetchall()
     return rich_list
 
-# def get_networth(user_id:int):
-#     db = database(PLAYER_DATA)
-#     db.start_connection()
-#     db.c.execute(f"SELECT wallet FROM user_data WHERE user_id = {user_id}")
-#     return db.c.fetchone()[0]
 
+def get_item(user_id:int, item_name):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM user_inventory WHERE user_id = ? AND item = ?", (user_id, item_name))
+    return db.c.fetchall()
+
+def buy_item(user_id:int, item_name):
+    item_name = item_name.lower()
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO user_inventory VALUES (?, ?)",(user_id, item_name))
+    db.conn.commit()
+    db.conn.close()
+    price = funcs.get_item_buy_price(item_name)
+    deduct_wallet(user_id, price)
+    
+def sell_item(user_id:int, item_name):
+    item_name = item_name.lower()
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM user_inventory WHERE user_id = ? AND item = ?",(user_id, item_name))
+    db.conn.commit()
+    db.conn.close()
+    price = funcs.get_item_sell_price(item_name)
+    update_wallet(user_id, price)
+    
 
 def check_user(user_id:int) -> bool:
     db = database(PLAYER_DATA)

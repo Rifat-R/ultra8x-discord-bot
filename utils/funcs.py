@@ -32,6 +32,19 @@ def get_shop_dict():
         
     return shop_data
 
+def get_item_buy_price(item_name:str):
+    shop_data = get_shop_dict()
+    items = shop_data["items"]
+    price = items[item_name]["buy_price"]
+    return price
+
+def get_item_sell_price(item_name:str):
+    shop_data = get_shop_dict()
+    items = shop_data["items"]
+    price = items[item_name]["sell_price"]
+    return price
+
+
 def gen_shop_embed():
     shop_data = get_shop_dict()
     embeds = []
@@ -43,8 +56,9 @@ def gen_shop_embed():
         embed = disnake.Embed(title=f"Shop", description=leaderboard_string)
         embeds.append(embed)
         for item_name in item_list:
-            price = items_dict[item_name]["price"]
+            price = items_dict[item_name]["buy_price"]
             description = items_dict[item_name]["description"]
+            item_name = item_name.capitalize()
             embed.add_field(name = f"{counter})`{item_name}`", value = f"Price: `{price}`\nDescription: `{description}`", inline=False)
             counter += 1
         
