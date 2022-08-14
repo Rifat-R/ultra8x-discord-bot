@@ -10,7 +10,7 @@ intents.members = True
 intents.message_content = True
 
 
-bot = commands.Bot(command_prefix = ".", intents=intents,activity=disnake.Game(name="Type in .help"), reload=True)
+bot = commands.Bot(command_prefix = ".", intents=intents,activity=disnake.Game(name="Type in .help"))
 
 
 for filename in os.listdir("./cogs"):

@@ -71,5 +71,6 @@ class Levelling(commands.Cog):
                              ")
         embed.set_thumbnail(url=user.display_avatar)
         await inter.send(embed=embed)
+
 def setup(bot):
     bot.add_cog(Levelling(bot))

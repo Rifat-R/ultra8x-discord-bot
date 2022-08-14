@@ -2,7 +2,7 @@ import disnake
 from disnake.ext import commands
 import random
 import asyncio
-from utils import database as db, constants as const
+from utils import database as db, constants as const, blackjack
 
 class Economy(commands.Cog):
 
@@ -26,18 +26,12 @@ class Economy(commands.Cog):
         amount = int(amount) 
         if amount > 0: 
             if amount <= db.wallet(ctx.author.id): 
-                
                 db.deduct_wallet(ctx.author.id, amount) 
                 db.update_wallet(user.id, amount) 
                 await ctx.send(f"{ctx.author.mention} has paid {user.mention} **{amount:,}**.") 
-                
             else:
-                
-                await ctx.send(f"{ctx.author.mention} You don't have that much !" + 
-                               f" You only have **{db.wallet(ctx.author.id):,}** in your wallet!")
-                
+                await ctx.send(f"{ctx.author.mention} You don't have that much ! You only have **{db.wallet(ctx.author.id):,}** in your wallet!")
         else:
-            
             await ctx.send(f"{ctx.author.mention} Please enter a **valid** value!")
 
     @commands.slash_command(description="Deposits money in your bank") 
@@ -55,8 +49,6 @@ class Economy(commands.Cog):
             if num.isdecimal(): 
                 num_int = int(num) 
                 if num_int > wallet_balance: 
-                    
-                    
                     await ctx.send(f"<@{ctx.author.id}> You do not have the necessary funds to deposit.")			
                 else:
                     
@@ -91,6 +83,23 @@ class Economy(commands.Cog):
                                    f"Current wallet balance **{db.wallet(ctx.author.id):,}**.")		
             else:
                 await ctx.send(f"<@{ctx.author.id}> Please enter a valid **number**!")
+                
+                
+    @commands.slash_command(description="Blackjack game")
+    async def blackjack(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        bj = blackjack.blackjack(inter, self.bot.user.name)
+        
+        embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards)
+
+        await inter.send(embed=embed,view=bj)
+    
+    @commands.command()
+    async def test(self, ctx):
+        embed = disnake.Embed()
+        embed.set_author(name="test", value="[asdsad](https://google.com)")
+        await ctx.send(embed=embed)
+        
                 
                 
     @commands.slash_command(description="Work for money. One hour cooldown")
