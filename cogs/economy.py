@@ -10,60 +10,72 @@ class Economy(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Checks user economy balance") 
-    async def balance(self, ctx, user:disnake.Member = None):
+    async def balance(self, inter:disnake.CommandInteraction, user:disnake.Member = None):
         if user is None:
-            user = ctx.author
+            user = inter.author
 
         pfp = user.display_avatar 
         em = disnake.Embed(title = f"{user.name}'s balance", color = disnake.Color.blue())
         em.add_field(name = "Wallet balance:", value = f"**{db.wallet(user.id):,}**")
         em.add_field(name = "Bank balance:", value = f"**{db.bank(user.id):,}**" )
         em.set_thumbnail(url=pfp)
-        await ctx.send(embed = em)
+        await inter.send(embed = em)
 
     @commands.slash_command(description="Give a user an amount of money")
-    async def give(self, ctx, user:disnake.Member, amount):
+    async def give(self, inter:disnake.CommandInteraction, user:disnake.Member, amount):
         amount = int(amount) 
         if amount > 0: 
-            if amount <= db.wallet(ctx.author.id): 
-                db.deduct_wallet(ctx.author.id, amount) 
+            if amount <= db.wallet(inter.author.id): 
+                db.deduct_wallet(inter.author.id, amount) 
                 db.update_wallet(user.id, amount) 
-                await ctx.send(f"{ctx.author.mention} has paid {user.mention} **{amount:,}**.") 
+                await inter.send(f"{inter.author.mention} has paid {user.mention} **{amount:,}**.") 
             else:
-                await ctx.send(f"{ctx.author.mention} You don't have that much ! You only have **{db.wallet(ctx.author.id):,}** in your wallet!")
+                await inter.send(f"{inter.author.mention} You don't have that much ! You only have **{db.wallet(inter.author.id):,}** in your wallet!")
         else:
-            await ctx.send(f"{ctx.author.mention} Please enter a **valid** value!")
+            await inter.send(f"{inter.author.mention} Please enter a **valid** value!")
 
     @commands.slash_command(description="Deposits money in your bank") 
-    async def deposit(self, ctx, num):
-        wallet_balance = db.wallet(ctx.author.id) 
-        if num == "all": 
+    async def deposit(self, inter:disnake.CommandInteraction, amount):
+        """
+        Deposit money from your wallet balance
+        Parameters
+        ----------
+        amount: The amount of money you want to deposit. Can also type 'all' to deposit all money from wallet.
+        """
+        wallet_balance = db.wallet(inter.author.id) 
+        if amount == "all": 
             if wallet_balance == 0: 
-                await ctx.send(f"<@{ctx.author.id}> You do **not** have any funds to deposit!")
+                await inter.send(f"<@{inter.author.id}> You do **not** have any funds to deposit!")
             else:
-                db.update_bank(ctx.author.id,wallet_balance) 
-                await ctx.send(f"<@{ctx.author.id}> You have deposited **{wallet_balance:,}**. " + 
-                               f"Current wallet balance **{db.bank(ctx.author.id):,}**.")
-                db.deduct_wallet(ctx.author.id,wallet_balance) 
+                db.update_bank(inter.author.id,wallet_balance) 
+                await inter.send(f"<@{inter.author.id}> You have deposited **{wallet_balance:,}**. " + 
+                               f"Current wallet balance **{db.bank(inter.author.id):,}**.")
+                db.deduct_wallet(inter.author.id,wallet_balance) 
         else:
-            if num.isdecimal(): 
-                num_int = int(num) 
-                if num_int > wallet_balance: 
-                    await ctx.send(f"<@{ctx.author.id}> You do not have the necessary funds to deposit.")			
+            if amount.isdecimal(): 
+                amount_int = int(amount) 
+                if amount_int > wallet_balance: 
+                    await inter.send(f"<@{inter.author.id}> You do not have the necessary funds to deposit.")			
                 else:
                     
-                    db.update_bank(ctx.author.id, num_int)
-                    db.deduct_wallet(ctx.author.id, num_int)
-                    await ctx.send(f"<@{ctx.author.id}> You have deposited **{num_int:,}**. "
-                                   +f"Current bank balance **{db.bank(ctx.author.id):,}**.")		
+                    db.update_bank(inter.author.id, amount_int)
+                    db.deduct_wallet(inter.author.id, amount_int)
+                    await inter.send(f"<@{inter.author.id}> You have deposited **{amount_int:,}**. "
+                                   +f"Current bank balance **{db.bank(inter.author.id):,}**.")		
             else:
-                await ctx.send(f"<@{ctx.author.id}> Please enter a valid number!") 
+                await inter.send(f"<@{inter.author.id}> Please enter a valid number!") 
                 
 
     @commands.slash_command(description="Withdraws money from bank balance to wallet balance")
-    async def withdraw(self, ctx,num):
+    async def withdraw(self, ctx, amount):
+        """
+        Withdraw money from your bank balance
+        Parameters
+        ----------
+        amount: The amount of money you want to withdraw. Can also type 'all' to withdraw all money from bank.
+        """
         bank_balance = db.bank(ctx.author.id)
-        if num == "all": 
+        if amount == "all": 
             if bank_balance == 0: 
                 await ctx.send(f"<@{ctx.author.id}> You do **not** have any funds to withdraw!")
             else: 
@@ -72,8 +84,8 @@ class Economy(commands.Cog):
                                f"Current wallet balance **{db.wallet(ctx.author.id):,}**.")
                 db.deduct_bank(ctx.author.id,bank_balance) 
         else:
-            if num.isdecimal():
-                amount_transferred = int(num)
+            if amount.isdecimal():
+                amount_transferred = int(amount)
                 if amount_transferred > bank_balance:
                     await ctx.send(f"<@{ctx.author.id}> You can only **withdraw** **{bank_balance:,}** or less.")			
                 else:
@@ -86,9 +98,24 @@ class Economy(commands.Cog):
                 
                 
     @commands.slash_command(description="Blackjack game")
-    async def blackjack(self, inter:disnake.CommandInteraction):
+    async def blackjack(self, inter:disnake.CommandInteraction, bet:int):
+        """
+        Game
+        Parameters
+        ----------
+        bet: The amount of money you want to bet. Must be atleast 500
+        """
         user = inter.author
-        bj = blackjack.blackjack(inter, self.bot.user.name)
+        wallet_balance = db.wallet(user.id)
+        if bet < 500:
+            await inter.send("You must bet atleast 500", ephemeral=True)
+            return
+        if wallet_balance < bet:
+            await inter.send(f"You do not have {bet} in your wallet!", ephemeral=True)
+            return
+        
+    
+        bj = blackjack.blackjack(inter, self.bot.user.name, bet)
         
         embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards)
 

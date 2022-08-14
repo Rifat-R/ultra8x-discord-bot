@@ -1,9 +1,10 @@
 import disnake
 import random
+from utils import database as db
 
 
 class blackjack(disnake.ui.View):
-    def __init__(self, inter:disnake.CommandInteraction, bot_name):
+    def __init__(self, inter:disnake.CommandInteraction, bot_name, bet):
         super().__init__(timeout=20)
         self.inter = inter
         self.cards = {"A" : 1, "2" : 2, "3" : 3, "4" : 4, "5" : 5, "6" : 6, "7" : 7, "8" : 8, "9" : 9, "10" : 10, "J" : 10, "Q" : 10, "K" : 10}
@@ -13,10 +14,11 @@ class blackjack(disnake.ui.View):
         self.bot_cards = [self.get_random_card(), "?"]
         self.bot_name = bot_name
         self.game_finished = False
+        self.bet = bet
         
     def get_total(self, cards:list):
         total = 0
-        print(cards)
+        # print(cards)
         for card in cards:
             if card[1:] == "A": #Checks whether A should automatically be assigned to a 1 or 11
                 if total <= 10:
