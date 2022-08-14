@@ -18,6 +18,14 @@ def restore_database():
     """)
     player_data.conn.commit()
     
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS user_inventory
+    (
+    user_id INTEGER,
+    item TEXT,
+    PRIMARY KEY (user_id, item)
+    ) 
+    """)
+    player_data.conn.commit()
 
 
     player_data.start_connection()

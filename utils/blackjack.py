@@ -1,6 +1,7 @@
 import disnake
 import random
 from utils import database as db
+from typing import List
 
 
 class blackjack(disnake.ui.View):
@@ -20,39 +21,39 @@ class blackjack(disnake.ui.View):
         total = 0
         # print(cards)
         for card in cards:
-            if card[1:] == "A": #Checks whether A should automatically be assigned to a 1 or 11
+            if card[1] == "A": #Checks whether A should automatically be assigned to a 1 or 11
                 if total <= 10:
                     value_of_card =11
                 else:
                     value_of_card = 1
             else:
-                value_of_card = self.cards[card[1:]]
+                value_of_card = self.cards[card[1]]
                 
             total += value_of_card
         return total
 
-    def get_random_card(self):
+    def get_random_card(self) -> list:
         # print(list(self.cards.keys()))
         while True:
             card = random.choice(list(self.cards.keys()))
             suit = random.choice(self.suits)
-            card = suit+card
+            card = [suit, card]
             if card not in self.used_cards:
                 self.used_cards.append(card)
                 return card
         
             
     def gen_embed(self, user:disnake.Member, bot_name, user_cards:list, bot_cards:list, description="", game_ended=False):
+        user_cards_joined = [" ".join(i) for i in user_cards] #Goes from [['♢', 'J'], ['♧', 'A']] to ['♢ J', '♧ A']
+        bot_cards_joined = [" ".join(i) for i in bot_cards]
         if not game_ended:
             bot_total = "?"
         else:
             bot_total = self.get_total(bot_cards)
         embed = disnake.Embed(description=description)
-        user_cards_list = user_cards
-        bot_cards_list = bot_cards
-        user_cards_string = " ".join(user_cards_list)
-        user_total = self.get_total(user_cards_list)
-        bot_cards_string = " ".join(bot_cards_list)
+        user_cards_string = " ".join(user_cards_joined)
+        user_total = self.get_total(user_cards)
+        bot_cards_string = " ".join(bot_cards_joined)
         embed.set_author(name=f"{user.name}'s blackjack game", icon_url=user.display_avatar)
         embed.add_field(name=f"**{user.name} (Player)**", value= f"Cards - **{user_cards_string}**\nTotal - `{user_total}`")
         embed.add_field(name=f"**{bot_name} (Dealer)**", value= f"Cards - **{bot_cards_string}**\nTotal - `{bot_total}`")
