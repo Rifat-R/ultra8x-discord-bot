@@ -2,7 +2,7 @@ import disnake
 from disnake.ext import commands
 import random
 import asyncio
-from utils import database as db, constants as const, blackjack, pagination
+from utils import database as db, constants as const, blackjack, pagination, funcs
 
 class Economy(commands.Cog):
 
@@ -103,15 +103,17 @@ class Economy(commands.Cog):
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_rich_leaderboard()
-        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 10 (so we can paginate)
+        counter = 1
+        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 5 (so we can paginate)
         for leaderboard in divived_leaderboard_list:
             embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string)
             embeds.append(embed)
-            for index, row in enumerate(leaderboard):
+            for row in leaderboard:
                 #indexes represent location of column in row log table
                 user_mention = f"`{row[0]}`"
                 networth = row[1]
-                embed.add_field(name = f"{index+1})" , value = f"User: {user_mention}\n Networth: `{networth:,}`\n",inline=False)
+                embed.add_field(name = f"{counter})" , value = f"User: {user_mention}\n Networth: `{networth:,}`\n",inline=False)
+                counter += 1
         if len(embeds) == 0:
             await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
         else:
@@ -142,15 +144,20 @@ class Economy(commands.Cog):
         embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards, description=description)
 
         await inter.send(embed=embed,view=bj)
+        
+    @commands.slash_command(description="Shop where you can buy products")
+    async def shop(self, inter:disnake.CommandInteraction):
+        embeds = funcs.gen_shop_embed()
+        await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
     
     @commands.command()
     async def test(self, ctx):
         # embed = disnake.Embed()
         # embed.set_author(name="test", value="[asdsad](https://google.com)")
         # await ctx.send(embed=embed)
-        await ctx.send(ctx.author)
-    
-                
+        items = funcs.get_shop_dict()["items"]
+        new_list = list(pagination.divide_list(list(items),1))
+        print(new_list)
                 
     @commands.slash_command(description="Work for money. One hour cooldown")
     @commands.cooldown(1,3600,type=commands.BucketType.user)

@@ -149,14 +149,7 @@ class Moderation(commands.Cog):
         db.remove_infraction(user.id)
         await inter.send(f"Removed infractions from user {user.mention} ✅", ephemeral = True)
         
-        
-        
-                
-            
-        
-        
-    
-        
+
         
     #Error handlers
     @ban.error

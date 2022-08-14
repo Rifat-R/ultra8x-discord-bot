@@ -1,0 +1,6 @@
+{
+    "items": {
+        "Bat" : {"price": 500, "description": "Whack other users with this bat"},
+        "Ball" : {"price": 500, "description": "Throw an imaginary ball"}
+    }
+}
