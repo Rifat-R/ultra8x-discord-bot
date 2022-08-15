@@ -9,5 +9,6 @@ MULTIPLIER = 1.25
 #Aesthetics
 EMBED_COLOUR = 0x036ffc
 
-#Moderation
+#Roles
 STAFF_ROLE = "Staff" #Change this to whatever role you want to have access to moderation commands
+ADMIN_ROLE = "Admin"

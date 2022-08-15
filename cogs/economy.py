@@ -199,16 +199,50 @@ class Economy(commands.Cog):
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
             
-            
+    @commands.has_role(const.ADMIN_ROLE)
     @commands.slash_command(description = "Give user money")
-    async def give(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member, ):
-        db.update_wallet(user.id, amount)
-        await inter.send(f"Gave user  **{amount}** to {user.mention}'s wallet", ephemeral=True)
+    async def give(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member, location:str):
+        """
+        Give a user a sum of money in their wallet or bank
+        Parameters
+        ----------
+        amount: Amount of money you want to give the user
+        user: The user you want to give money to
+        location: The location where you want to give money to. Must be either "wallet" or "bank". 
+        """
+        location = location.lower()
+        if location != "wallet" and location != "bank":
+            await inter.send("You must specify location as either `wallet` or `bank`.", ephemeral = True)
+            return
+        if location == "wallet":
+            db.update_wallet(user.id, amount)
+        if location == "bank":
+            db.update_bank(user.id, amount)
+        
+        await inter.send(f"Gave **{amount:,}** to {user.mention}'s {location}", ephemeral=True)
 
+
+    @commands.has_role(const.ADMIN_ROLE)
     @commands.slash_command(description = "Give user money")
-    async def take(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member):
-        db.deduct_wallet(user.id, amount)
-        await inter.send(f"Took **{amount}** from {user.mention}'s wallet", ephemeral=True)
+    async def take(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member, location:str):
+        """
+        Take a sum of money from a user either from their wallet or bank
+        Parameters
+        ----------
+        amount: Amount of money you want to take from the user
+        user: The user you want to take money from
+        location: The location where you want to take money from. Must be either "wallet" or "bank". 
+        """
+        location = location.lower()
+        if location != "wallet" and location != "bank":
+            await inter.send("You must specify location as either `wallet` or `bank`.", ephemeral = True)
+            return
+        if location == "wallet":
+            db.deduct_wallet(user.id, amount)
+        if location == "bank":
+            db.deduct_bank(user.id, amount)
+        
+        await inter.send(f"Took **{amount:,}** from {user.mention}'s {location}", ephemeral=True)
         
         
                 
@@ -295,6 +329,18 @@ class Economy(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown): 
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 60, 1)} minutes.", ephemeral=True)
 
+
+    @give.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors"""
+        if isinstance(error, commands.MissingRole): 
+            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+            
+    @give.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors"""
+        if isinstance(error, commands.MissingRole): 
+            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
 
 def setup(bot):
     bot.add_cog(Economy(bot))
