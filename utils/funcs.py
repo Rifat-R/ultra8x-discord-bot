@@ -53,7 +53,7 @@ def gen_shop_embed():
     counter = 1
     divided_item_list = list(pagination.divide_list(list(items_dict),5))
     for item_list in divided_item_list:
-        embed = disnake.Embed(title=f"Shop", description=leaderboard_string)
+        embed = disnake.Embed(title=f"Shop", description=leaderboard_string, color = const.EMBED_COLOUR)
         embeds.append(embed)
         for item_name in item_list:
             price = items_dict[item_name]["buy_price"]

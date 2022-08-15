@@ -141,10 +141,25 @@ def get_rich_leaderboard():
     return rich_list
 
 
-def get_item(user_id:int, item_name):
+def get_item(user_id:int, item_name:str):
     db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"SELECT * FROM user_inventory WHERE user_id = ? AND item = ?", (user_id, item_name))
+    return db.c.fetchall()
+
+#Might need it for future purposes (the execute line)
+
+# def get_user_inventory(user_id:int):
+#     db = database(PLAYER_DATA)
+#     db.start_connection()
+#     db.c.execute(f"SELECT user_data.author, user_inventory.item FROM user_inventory INNER JOIN user_data ON user_inventory.user_id = user_data.user_id WHERE user_data.user_id = ?", (user_id,))
+#     player_inventory = db.c.fetchall()
+#     return player_inventory
+
+def get_user_inventory(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM user_inventory WHERE user_id = ?", (user_id,))
     return db.c.fetchall()
 
 def buy_item(user_id:int, item_name):

@@ -1,6 +1,6 @@
 import disnake
 import random
-from utils import database as db
+from utils import database as db, constants as const
 from typing import List
 
 
@@ -50,7 +50,7 @@ class blackjack(disnake.ui.View):
             bot_total = "?"
         else:
             bot_total = self.get_total(bot_cards)
-        embed = disnake.Embed(description=description)
+        embed = disnake.Embed(description=description, color = const.EMBED_COLOUR)
         user_cards_string = " ".join(user_cards_joined)
         user_total = self.get_total(user_cards)
         bot_cards_string = " ".join(bot_cards_joined)

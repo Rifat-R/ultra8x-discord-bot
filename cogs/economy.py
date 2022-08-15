@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from utils import database as db, constants as const, blackjack, pagination, funcs
+from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
 
 class Economy(commands.Cog):
@@ -10,18 +10,30 @@ class Economy(commands.Cog):
 
     @commands.slash_command(description="Checks user economy balance") 
     async def balance(self, inter:disnake.CommandInteraction, user:disnake.Member = None):
+        """
+        Buy an item from the shop
+        Parameters
+        ----------
+        user: The user you want to check the balance of.
+        """
         if user is None:
             user = inter.author
 
         pfp = user.display_avatar 
-        em = disnake.Embed(title = f"{user.name}'s balance", color = disnake.Color.blue())
+        em = disnake.Embed(title = f"{user.name}'s balance", color = const.EMBED_COLOUR)
         em.add_field(name = "Wallet balance:", value = f"**{db.wallet(user.id):,}**")
         em.add_field(name = "Bank balance:", value = f"**{db.bank(user.id):,}**" )
         em.set_thumbnail(url=pfp)
         await inter.send(embed = em)
 
-    @commands.slash_command(description="Give a user an amount of money")
-    async def give(self, inter:disnake.CommandInteraction, user:disnake.Member, amount):
+    @commands.slash_command(description="Transfer an amount of money to a user")
+    async def transfer(self, inter:disnake.CommandInteraction, user:disnake.Member, amount):
+        """
+        Buy an item from the shop
+        Parameters
+        ----------
+        user: The user you want send money to.
+        """
         amount = int(amount) 
         if amount > 0: 
             if amount <= db.wallet(inter.author.id): 
@@ -98,14 +110,13 @@ class Economy(commands.Cog):
                 
     @commands.slash_command(description="Get top 10 richest players")
     async def rich(self, inter:disnake.CommandInteraction):
-        user = inter.author
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_rich_leaderboard()
         counter = 1
         divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 5 (so we can paginate)
         for leaderboard in divived_leaderboard_list:
-            embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string)
+            embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string, color = const.EMBED_COLOUR)
             embeds.append(embed)
             for row in leaderboard:
                 #indexes represent location of column in row log table
@@ -122,6 +133,12 @@ class Economy(commands.Cog):
             
     @commands.slash_command(description="Buy an item from the shop")
     async def buy(self, inter:disnake.CommandInteraction, item_name):
+        """
+        Buy an item from the shop
+        Parameters
+        ----------
+        item_name: The name of the item you want to buy.
+        """
         user = inter.author
         item_name = item_name.lower()
         item_price = funcs.get_item_buy_price(item_name)
@@ -136,10 +153,16 @@ class Economy(commands.Cog):
             await inter.send(f"You already have that item in your inventory!", ephemeral=True)
             return
             
-        await inter.send(f"You have bought {item_name} for {item_price}.")
+        await inter.send(f"You have bought `{item_name}` for **{item_price}**.")
         
-    @commands.slash_command(description="Sell your item in your inventory")
+    @commands.slash_command(description="Sell an item from your inventory")
     async def sell(self, inter:disnake.CommandInteraction, item_name):
+        """
+        Sell an item from your inventory
+        Parameters
+        ----------
+        item_name: The name of the item you want to sell.
+        """
         item_name = item_name.lower()
         user = inter.author
         
@@ -147,8 +170,30 @@ class Economy(commands.Cog):
             await inter.send(f"You do not have that item in your inventory!", ephemeral=True)
             return
         db.sell_item(inter.author.id, item_name)
-        await inter.send(f"You have sold {item_name} for {funcs.get_item_sell_price(item_name)}.")
-    
+        await inter.send(f"You have sold `{item_name}` for **{funcs.get_item_sell_price(item_name)}**.")
+        
+        
+    @commands.slash_command(description = "Shows your inventory")
+    async def inventory(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        inventory_string = ""
+        embeds = []
+        inventory_list = db.get_user_inventory(user.id)
+        counter = 1
+        divided_inventory_list = list(pagination.divide_list(inventory_list, 5)) #All infraction divided in lists of length 5 (so we can paginate)
+        for inventory in divided_inventory_list:
+            for row in inventory:
+                item = f"{row[1]}"
+                inventory_string += f"• `{item.capitalize()}`\n"
+                counter += 1
+            embed = disnake.Embed(title=f"Economy inventory", description=inventory_string, color = const.EMBED_COLOUR)
+            embeds.append(embed)
+        if len(embeds) == 0:
+            await inter.send(f"You have no items in your inventory! Start by looking at the shop!", ephemeral=True)
+        else:
+            await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+        
+                
 
                 
     @commands.slash_command(description="Blackjack game")
@@ -181,14 +226,6 @@ class Economy(commands.Cog):
         embeds = funcs.gen_shop_embed()
         await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
     
-    @commands.command()
-    async def test(self, ctx):
-        # embed = disnake.Embed()
-        # embed.set_author(name="test", value="[asdsad](https://google.com)")
-        # await ctx.send(embed=embed)
-        items = funcs.get_shop_dict()["items"]
-        new_list = list(pagination.divide_list(list(items),1))
-        print(new_list)
                 
     @commands.slash_command(description="Work for money. One hour cooldown")
     @commands.cooldown(1,3600,type=commands.BucketType.user)
@@ -213,29 +250,30 @@ class Economy(commands.Cog):
         await ctx.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
         
 
+#Testing purposes (The id is Anom4ly's)
 
-    @commands.command()
-    async def money(self, ctx):
-        db.update_wallet(338764415358861314,1000000)
+    # @commands.command()
+    # async def money(self, ctx):
+    #     db.update_wallet(338764415358861314,1000000)
         
 
 #Error handlers
 
     @daily.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
-        """Handle errors for the beg command."""
+        """Handle errors for the daily command."""
         if isinstance(error, commands.CommandOnCooldown): 
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 3600, 1)} hours.", ephemeral=True)
             
     @weekly.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
-        """Handle errors for the beg command."""
+        """Handle errors for the weekly command."""
         if isinstance(error, commands.CommandOnCooldown): 
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 86400, 1)} days.", ephemeral=True)
             
     @work.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
-        """Handle errors for the beg command."""
+        """Handle errors for the work command."""
         if isinstance(error, commands.CommandOnCooldown): 
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 60, 1)} minutes.", ephemeral=True)
 
