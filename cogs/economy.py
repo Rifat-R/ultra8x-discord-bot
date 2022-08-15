@@ -2,14 +2,16 @@ import disnake
 from disnake.ext import commands
 from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
+import random
 
 class Economy(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
+
     @commands.slash_command(description="Checks user economy balance") 
-    async def balance(self, inter:disnake.CommandInteraction, user:disnake.Member = None):
+    async def balance(self, inter:disnake.CommandInteraction, user:disnake.Member = None):                              # Balance Command
         """
         Buy an item from the shop
         Parameters
@@ -20,13 +22,17 @@ class Economy(commands.Cog):
             user = inter.author
 
         pfp = user.display_avatar 
-        em = disnake.Embed(title = f"{user.name}'s balance", color = const.EMBED_COLOUR)
-        em.add_field(name = "Wallet balance:", value = f"**{db.wallet(user.id):,}**")
-        em.add_field(name = "Bank balance:", value = f"**{db.bank(user.id):,}**" )
-        em.set_thumbnail(url=pfp)
+        em = disnake.Embed(color = const.EMBED_COLOUR)   #title = f"{user.name}'s Balance",
+        em.add_field(name = "💵 __Cash__     ", value = f"**{db.wallet(user.id):,}**")
+        em.add_field(name = "💳 __Bank__     ", value = f"**{db.bank(user.id):,}**" )
+        em.add_field(name = "🏦 __Total__     ", value = f"**{db.wallet(user.id) + db.bank(user.id):,}**")
+        em.set_author(name = f"{user.name}'s Balance", icon_url = pfp)
+        em.set_thumbnail(url = pfp)
+        em.set_footer(text=f"Requested By: {user.name} | {user.id}")
         await inter.send(embed = em)
 
-    @commands.slash_command(description="Transfer an amount of money to a user")
+
+    @commands.slash_command(description="Transfer an amount of money to a user")                                        # Transfer Command
     async def transfer(self, inter:disnake.CommandInteraction, user:disnake.Member, amount):
         """
         Buy an item from the shop
@@ -37,7 +43,7 @@ class Economy(commands.Cog):
         amount = int(amount) 
         if amount > 0: 
             if amount <= db.wallet(inter.author.id): 
-                db.deduct_wallet(inter.author.id, amount) 
+                db.deduct_wallet(inter.author.id, amount)
                 db.update_wallet(user.id, amount) 
                 await inter.send(f"{inter.author.mention} has paid {user.mention} **{amount:,}**.") 
             else:
@@ -45,7 +51,7 @@ class Economy(commands.Cog):
         else:
             await inter.send(f"{inter.author.mention} Please enter a **valid** value!")
 
-    @commands.slash_command(description="Deposits money in your bank") 
+    @commands.slash_command(description="Deposits money in your bank")                                                  # Deposit Command
     async def deposit(self, inter:disnake.CommandInteraction, amount):
         """
         Deposit money from your wallet balance
@@ -77,7 +83,7 @@ class Economy(commands.Cog):
                 await inter.send(f"<@{inter.author.id}> Please enter a valid number!") 
                 
 
-    @commands.slash_command(description="Withdraws money from bank balance to wallet balance")
+    @commands.slash_command(description="Withdraws money from bank balance to wallet balance")                          # Withdraw Command
     async def withdraw(self, ctx, amount):
         """
         Withdraw money from your bank balance
@@ -108,7 +114,7 @@ class Economy(commands.Cog):
                 await ctx.send(f"<@{ctx.author.id}> Please enter a valid **number**!")
                 
                 
-    @commands.slash_command(description="Get top 10 richest players")
+    @commands.slash_command(description="Get top 10 richest players")                                                   # Rich (Leaderboard) Command
     async def rich(self, inter:disnake.CommandInteraction):
         leaderboard_string = ""
         embeds = []
@@ -122,7 +128,7 @@ class Economy(commands.Cog):
                 #indexes represent location of column in row log table
                 user_mention = f"`{row[0]}`"
                 networth = row[1]
-                embed.add_field(name = f"{counter})" , value = f"User: {user_mention}\n Networth: `{networth:,}`\n",inline=False)
+                embed.add_field(name = f"{counter}. {user_mention}", value = f"Networth: `{networth:,}`\n", inline = True)
                 counter += 1
         if len(embeds) == 0:
             await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
@@ -131,7 +137,7 @@ class Economy(commands.Cog):
             
             
             
-    @commands.slash_command(description="Buy an item from the shop")
+    @commands.slash_command(description="Buy an item from the shop")                                                    # Buy Command
     async def buy(self, inter:disnake.CommandInteraction, item_name):
         """
         Buy an item from the shop
@@ -192,6 +198,18 @@ class Economy(commands.Cog):
             await inter.send(f"You have no items in your inventory! Start by looking at the shop!", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+            
+            
+    @commands.slash_command(description = "Give user money")
+    async def give(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member, ):
+        db.update_wallet(user.id, amount)
+        await inter.send(f"Gave user  **{amount}** to {user.mention}'s wallet", ephemeral=True)
+
+    @commands.slash_command(description = "Give user money")
+    async def take(self, inter:disnake.CommandInteraction, amount:int, user:disnake.Member):
+        db.deduct_wallet(user.id, amount)
+        await inter.send(f"Took **{amount}** from {user.mention}'s wallet", ephemeral=True)
+        
         
                 
 
@@ -230,9 +248,9 @@ class Economy(commands.Cog):
     @commands.slash_command(description="Work for money. One hour cooldown")
     @commands.cooldown(1,3600,type=commands.BucketType.user)
     async def work(self, inter:disnake.CommandInteraction):
-        amount_of_money = 5000
+        amount_of_money = random.randint(250, 5000)
         db.update_wallet(inter.author.id, amount_of_money)
-        await inter.send(f"You worked and gained **{amount_of_money}**. Enjoy!", ephemeral=True)
+        await inter.send(f"You worked and gained **{amount_of_money}**. Enjoy!", ephemeral=False)
                 
                 
     @commands.slash_command()
