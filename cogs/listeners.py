@@ -1,6 +1,6 @@
 from disnake.ext import commands
 import disnake
-from utils import database as db, constants as const, funcs
+from utils import database as db, constants as const, funcs, serverconfig as conf
 import sqlite3
 import math
 import random
@@ -31,6 +31,18 @@ class listeners_Cog(commands.Cog):
                     new_level = db.get_level(user.id)
 
                     await message.channel.send(f"You have increased by {level_added} Level! You are now Level {new_level}")
+                    
+                    
+    @commands.Cog.listener()
+    async def on_member_join(self, member:disnake.Member):
+        message, channel_id = conf.get_welcome_message(member.guild.id)
+        if message is None or channel_id is None:
+            print("Welcome message has not been set! Do this in discord.")
+            return
+        channel = self.bot.get_channel(channel_id)
+        embed = disnake.Embed(description=message)
+        embed.set_author(name=f"{member.name}", url=member.display_avatar.url)
+        await channel.send(embed=embed)
 
 
 

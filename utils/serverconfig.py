@@ -1,7 +1,9 @@
 from sqlitedict import SqliteDict
+from utils import database as db
 
 
 SERVER_CONF_NAME = "serverconf.sqlite"
+
 
 
 
@@ -35,4 +37,39 @@ def get_filter_word_list():
         filter_word_list = []
     return filter_word_list
         
+    
+def set_welcome_message(guild_id:str, channel_id:int , message:str):
+    guild_id = str(guild_id)
+    db = SqliteDict(SERVER_CONF_NAME)
+    welcome_message_dict = db.get("welcome_message")
+    if welcome_message_dict is None:
+        db["welcome_message"] = {guild_id : {"message": message, "channel_id" : channel_id}}
+        db.commit()
+        db.close()
+        return
+    guild_id_dict = welcome_message_dict.get(guild_id)
+    guild_id_dict["message"] = message
+    guild_id_dict["channel_id"] = channel_id
+    welcome_message_dict[guild_id] = guild_id_dict
+    db["welcome_message"] = welcome_message_dict
+    print(db["welcome_message"])
+    db.commit()
+    db.close()
+    
+    
+def get_welcome_message(guild_id:str):
+    guild_id = str(guild_id)
+    db = SqliteDict(SERVER_CONF_NAME)
+    welcome_message_dict = db.get("welcome_message")
+    if welcome_message_dict is None:
+        return None, None
+    guild_id_dict = welcome_message_dict.get(guild_id)
+    if guild_id_dict is None:
+        return None, None
+    message = guild_id_dict.get("message")
+    channel_id = guild_id_dict.get("channel_id")
+    if message is None or channel_id is None:
+        return None, None
+    return message, channel_id
+    
     

@@ -208,6 +208,17 @@ class Moderation(commands.Cog):
         filter_word_list = conf.get_filter_word_list()
         await inter.send(f"Word list: {filter_word_list}", ephemeral = True)
         
+    @commands.has_any_role(*const.STAFF_ROLE)
+    @serverconf.sub_command(description="Set welcome message")
+    async def set_welcome_message(self, inter:disnake.CommandInteraction, channel:disnake.TextChannel, message:str):
+        conf.set_welcome_message(inter.guild_id, channel.id, message)
+        await inter.send(f"You have updated welcome message to\n`{message}`")
+        
+    @commands.has_any_role(*const.STAFF_ROLE)
+    @serverconf.sub_command(description="Get welcome message")
+    async def get_welcome_message(self, inter:disnake.CommandInteraction):
+        message, channel_id = conf.get_welcome_message(inter.guild_id)
+        await inter.send(f"Welcome message:\n `{message}`")
 		
 
     @warn.error
