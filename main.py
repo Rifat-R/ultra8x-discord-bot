@@ -9,9 +9,7 @@ intents = disnake.Intents.default()
 intents.members = True  
 intents.message_content = True
 
-
-bot = commands.Bot(command_prefix = ".", intents=intents,activity=disnake.Game(name="Type in .help"))
-
+bot = commands.Bot(intents=intents, activity=disnake.Game(name="PyCharm"))
 
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
@@ -20,13 +18,13 @@ for filename in os.listdir("./cogs"):
 
 
 async def tasks():
-    init_database.restore_database() 
-    
+    init_database.restore_database()
+
 
 def main():
     bot.loop.create_task(tasks())
     bot.run(BOT_KEY) 
-    
+
+
 if __name__ == "__main__":
     main()
-
