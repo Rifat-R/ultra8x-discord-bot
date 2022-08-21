@@ -2,7 +2,7 @@ from os import remove
 import disnake
 from disnake.ext import commands
 from disnake.utils import get
-from utils import database as db, pagination, constants as const
+from utils import database as db, pagination, constants as const, serverconfig as conf
 
 
 
@@ -12,7 +12,7 @@ class Moderation(commands.Cog):
         self.bot = bot
         
         
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Warns a member in the server")
     async def warn(self, inter, member:disnake.Member, *, reason="No reason has been given"):
         db.warn_log(member.id, reason, inter.author.id)
@@ -22,7 +22,7 @@ class Moderation(commands.Cog):
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await inter.send(embed=embed)
 
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Kicks a member in the server")
     async def kick(self, inter, member:disnake.Member, *, reason="No reason has been given"):
         """Kicks a user from the server
@@ -40,7 +40,7 @@ class Moderation(commands.Cog):
         await inter.send(embed=embed)
 
 
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Bans user from the server")
     async def ban(self, inter, member:disnake.Member, *, reason="No reason has been given"):
         """Bans a user from the server
@@ -58,7 +58,7 @@ class Moderation(commands.Cog):
         await inter.send(embed=embed)
         
         
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Gives user a timeout")
     async def mute(self, inter, member: disnake.Member, time:int, *, reason="No reason has been given"):
         """
@@ -79,7 +79,7 @@ class Moderation(commands.Cog):
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await inter.send(embed=embed)
         
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Removes user from timeout")
     async def unmute(self, inter, member: disnake.Member,*, reason="No reason has been given"):
         await member.timeout(duration=None)
@@ -89,7 +89,7 @@ class Moderation(commands.Cog):
         embed.add_field(name="Reason:", value=f"`{reason}`", inline=False)
         await inter.send(embed=embed)
                     
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Purges an amount of messages from the text channel")
     async def clear(self, inter, amount : int):
         await inter.channel.purge(limit=int(amount + 1))
@@ -112,7 +112,7 @@ class Moderation(commands.Cog):
         await inter.send(embed=embed)
         
         
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Shows user info")
     async def userinfo(self, inter:disnake.CommandInteraction, user:disnake.Member):
         user_id = user.id
@@ -131,7 +131,7 @@ class Moderation(commands.Cog):
         await inter.send(embed=embed)
         
     
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Gets user infractions")
     async def infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
         infraction_string = ""
@@ -158,59 +158,103 @@ class Moderation(commands.Cog):
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
             
             
-    @commands.has_role(const.STAFF_ROLE)
+    @commands.has_any_role(*const.STAFF_ROLE)
     @commands.slash_command(description="Removes ALL user infractions")
     async def remove_infractions(self, inter:disnake.CommandInteraction, user:disnake.Member):
         db.remove_infraction(user.id)
         await inter.send(f"Removed infractions from user {user.mention} ✅", ephemeral = True)
+        
+    
+    #Server config commands
+    @commands.Cog.listener()
+    async def on_message(self, message:disnake.Message):
+        if not message.author.bot:
+            filter_word_list = conf.get_filter_word_list()
+            for word in filter_word_list:
+                if word in message.content:
+                    await message.delete()
+                    reason_message = "Used inappropriate language"
+                    db.warn_log(message.author.id, reason_message, self.bot.user.id)
+                    await message.channel.send(f"{message.author.mention} You have used innapropriate language hence your message was deleted. You have gained a warn infraction.")
+                    return
+        
+    @commands.slash_command()
+    async def serverconf(self, ctx):
+        pass
+    
+    @commands.has_any_role(*const.STAFF_ROLE)
+    @serverconf.sub_command(description="Add a word to the word filtering list")
+    async def add_filter_word(self, inter:disnake.CommandInteraction, word:str):
+        filter_word_list = conf.get_filter_word_list()
+        if word in filter_word_list:
+            await inter.send(f"The word `{word}` already exists in the filtering list.", ephemeral = True)
+            return
+        conf.add_filter_word(word)
+        await inter.send(f"Added word `{word}` to the filtering list", ephemeral = True)
+        
+    @commands.has_any_role(*const.STAFF_ROLE)
+    @serverconf.sub_command(description="Remove a word from the word filtering list")
+    async def remove_filter_word(self, inter:disnake.CommandInteraction, word:str):
+        try:
+            conf.remove_filter_word(word)
+        except ValueError:
+            await inter.send(f"The word `{word}` does not exist in the filter word list.", ephemeral = True)
+        else:
+            await inter.send(f"Removed word `{word}` from the filter word list", ephemeral = True)
+            
+    @commands.has_any_role(*const.STAFF_ROLE)
+    @serverconf.sub_command(description="See the word filtering list")
+    async def get_filter_word_list(self, inter:disnake.CommandInteraction):
+        filter_word_list = conf.get_filter_word_list()
+        await inter.send(f"Word list: {filter_word_list}", ephemeral = True)
         
 		
 
     @warn.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
     @mute.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
 
     @kick.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
 
     @ban.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
     @infractions.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
     @remove_infractions.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
             
     @userinfo.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
             
             
     @clear.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
-        if isinstance(error, commands.MissingRole): 
-            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral = True)
+        if isinstance(error, commands.MissingAnyRole): 
+            await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
 
 
 

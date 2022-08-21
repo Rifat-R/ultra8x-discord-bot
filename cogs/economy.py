@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from utils import database as db, blackjack, pagination, funcs, constants as const, handlers
+from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
 import random
 
@@ -12,7 +12,7 @@ class Economy(commands.Cog):
         
         
     @commands.slash_command(description="Creates an account so you can use the bot!")
-    async def create(self, inter: disnake.CommandInteraction):
+    async def start(self, inter: disnake.CommandInteraction):
         try:
             user = inter.author
             db.create(user.id, str(user))
@@ -93,7 +93,7 @@ class Economy(commands.Cog):
                 await inter.send(f"{inter.author.mention} You do **not** have any funds to deposit!")
             else:
                 db.update_bank(inter.author.id, wallet_balance)
-                em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Deposited £{wallet_balance:,} to your bank!")
+                em = disnake.Embed(description=f"{const.TICK_EMOJI} Deposited £{wallet_balance:,} to your bank!")
                 em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                 em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                 await inter.send(embed=em)
@@ -103,7 +103,7 @@ class Economy(commands.Cog):
             if amount.isdecimal():
                 amount_int = int(amount)
                 if amount_int > wallet_balance:
-                    em = disnake.Embed(description=f"<:9772247001387827902:1009886637548908574> You don't have that much money to deposit. You currently have £{wallet_balance:,}.")
+                    em = disnake.Embed(description=f"{const.CROSS_EMOJI} You don't have that much money to deposit. You currently have £{wallet_balance:,}.")
                     em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                     em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                     await inter.send(embed=em)
@@ -111,7 +111,7 @@ class Economy(commands.Cog):
                 else:
                     db.update_bank(inter.author.id, amount_int)
                     db.deduct_wallet(inter.author.id, amount_int)
-                    em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Deposited £{amount_int:,} to your bank!")
+                    em = disnake.Embed(description=f"{const.TICK_EMOJI} Deposited £{amount_int:,} to your bank!")
                     em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                     em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                     await inter.send(embed=em)
@@ -138,7 +138,7 @@ class Economy(commands.Cog):
                 await inter.send(f"<@{inter.author.id}> You do **not** have any money to withdraw!")
             else:
                 db.update_wallet(inter.author.id, bank_balance)
-                em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Withdrew £{bank_balance:,} from your bank!")
+                em = disnake.Embed(description=f"{const.TICK_EMOJI} Withdrew £{bank_balance:,} from your bank!")
                 em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                 em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                 await inter.send(embed=em)
@@ -148,7 +148,7 @@ class Economy(commands.Cog):
             if amount.isdecimal():
                 amount_transferred = int(amount)
                 if amount_transferred > bank_balance:
-                    em = disnake.Embed(description=f"<:9772247001387827902:1009886637548908574> You don't have that much money to withdraw. You currently have £{bank_balance:,} in the bank.")
+                    em = disnake.Embed(description=f"{const.CROSS_EMOJI} You don't have that much money to withdraw. You currently have £{bank_balance:,} in the bank.")
                     em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                     em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                     await inter.send(embed=em)
@@ -156,7 +156,7 @@ class Economy(commands.Cog):
                 else:
                     db.update_wallet(inter.author.id, amount_transferred)
                     db.deduct_bank(inter.author.id, amount_transferred)
-                    em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Withdrew £{amount_transferred:,} from your bank! Current balance: £{db.bank(inter.author.id):,}")
+                    em = disnake.Embed(description=f"{const.TICK_EMOJI} Withdrew £{amount_transferred:,} from your bank! Current balance: £{db.bank(inter.author.id):,}")
                     em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
                     em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
                     await inter.send(embed=em)
@@ -189,7 +189,7 @@ class Economy(commands.Cog):
                 counter += 1
 
         if len(embeds) == 0:
-            await inter.send(f":908848747868454942: No one in this server has been registered to the bot. Start by typing in chat.", ephemeral=True)
+            await inter.send(f"{const.CROSS_EMOJI} No one in this server has been registered to the bot. Start by creating your account with /create", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
