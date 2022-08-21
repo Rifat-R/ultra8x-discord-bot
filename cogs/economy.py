@@ -32,8 +32,12 @@ class Economy(commands.Cog):
         if db.check_user(user.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
+        
+        rank = db.get_rich_rank(user.id)
+        cardinal_number_prefix = funcs.gen_ordinal_prefix(rank)
+        rank = f"{rank}{cardinal_number_prefix}"
 
-        em = disnake.Embed(description=f"Leaderboard Rank: {db.get_rich_leaderboard()[0]}") #title=f"{user.name}'s Balance", color=const.EMBED_COLOUR
+        em = disnake.Embed(description=f"Leaderboard Rank: {rank}") #title=f"{user.name}'s Balance", color=const.EMBED_COLOUR
         em.set_author(name=f"{inter.author.name}'s Balance", icon_url=inter.author.display_avatar)
         em.add_field(name="💵 __Cash__     ", value=f"£**{db.wallet(user.id):,}**")
         em.add_field(name="💳 __Bank__     ", value=f"£**{db.bank(user.id):,}**")
@@ -403,6 +407,11 @@ class Economy(commands.Cog):
         await inter.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
 
     # Testing purposes (The id is Anom4ly's)
+    
+    # @commands.slash_command(description="pog")
+    # async def test(self, ctx, user:disnake.Member):
+    #     rank = db.get_rich_rank(user.id)
+    #     await ctx.send(f"Their rank is: `{rank}`")
 
     # @commands.command()
     # async def money(self, ctx):

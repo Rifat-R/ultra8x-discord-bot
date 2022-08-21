@@ -140,6 +140,16 @@ def get_rich_leaderboard():
     rich_list = db.c.fetchall()
     return rich_list
 
+def get_rich_rank(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT ROW_NUMBER() OVER (ORDER BY (wallet + bank) DESC) row_num, user_id FROM user_data")
+    rich_rank_list = db.c.fetchall()
+    for rich_rank_tuple in rich_rank_list:
+        if rich_rank_tuple[1] == user_id:
+            return rich_rank_tuple[0]
+    
+
 
 def get_item(user_id:int, item_name:str):
     db = database(PLAYER_DATA)
