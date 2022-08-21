@@ -31,10 +31,7 @@ class listeners_Cog(commands.Cog):
                     new_level = db.get_level(user.id)
 
                     await message.channel.send(f"You have increased by {level_added} Level! You are now Level {new_level}")
-            else:
-                db.create(user.id, str(user))
-                db.add_xp(user.id, random_xp)   # Give random xp to user
-                print(f"User {user.id} has been created and stored in user_data table.")
+
 
 
 def setup(bot):

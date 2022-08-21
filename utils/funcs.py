@@ -64,5 +64,9 @@ def gen_shop_embed():
         
     return embeds
 
-    
+
+async def if_registered(inter:disnake.CommandInteraction):
+    if db.check_user(inter.author.id) is False:
+        await inter.send(f"You/They do not have an account. Create one using /create", ephemeral = True)
+        return
     

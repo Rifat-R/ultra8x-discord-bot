@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from utils import database as db, blackjack, pagination, funcs, constants as const
+from utils import database as db, blackjack, pagination, funcs, constants as const, handlers
 import sqlite3
 import random
 
@@ -9,7 +9,19 @@ class Economy(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-
+        
+        
+    @commands.slash_command(description="Creates an account so you can use the bot!")
+    async def create(self, inter: disnake.CommandInteraction):
+        try:
+            user = inter.author
+            db.create(user.id, str(user))
+            print(f"User {user.id} has been created and stored in user_data table.")
+            await inter.send(f"You have successfully created an account with this bot!", ephemeral = True)
+        except sqlite3.IntegrityError:
+            await inter.send(f"You already created an account!", ephemeral = True)
+        
+    
 # BALANCE COMMAND
     @commands.slash_command(description="Get the balance amount of anyone in the server")
     async def balance(self, inter: disnake.CommandInteraction, user: disnake.Member = None):
@@ -17,6 +29,9 @@ class Economy(commands.Cog):
         if user is None:
             user = inter.author
 
+        if db.check_user(user.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
 
         em = disnake.Embed(description=f"Leaderboard Rank: {db.get_rich_leaderboard()[0]}") #title=f"{user.name}'s Balance", color=const.EMBED_COLOUR
         em.set_author(name=f"{inter.author.name}'s Balance", icon_url=inter.author.display_avatar)
@@ -35,6 +50,10 @@ class Economy(commands.Cog):
         ----------
         user: The user you want send money to.
         """
+        if db.check_user(inter.author.id) is False or db.check_user(user.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         amount = int(amount)
         if amount > 0:
             if amount <= db.wallet(inter.author.id):
@@ -63,11 +82,15 @@ class Economy(commands.Cog):
         ----------
         amount: The amount of money you want to deposit. Can also type 'all' to deposit all money from wallet.
         """
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         wallet_balance = db.wallet(inter.author.id)
 
         if amount == "all":
             if wallet_balance == 0:
-                await inter.send(f"<@{inter.author.id}> You do **not** have any funds to deposit!")
+                await inter.send(f"{inter.author.mention} You do **not** have any funds to deposit!")
             else:
                 db.update_bank(inter.author.id, wallet_balance)
                 em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Deposited £{wallet_balance:,} to your bank!")
@@ -105,6 +128,10 @@ class Economy(commands.Cog):
         ----------
         amount: The amount of money you want to withdraw. Can also type 'all' to withdraw all money from bank.
         """
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         bank_balance = db.bank(inter.author.id)
         if amount == "all":
             if bank_balance == 0:
@@ -140,6 +167,10 @@ class Economy(commands.Cog):
 # RICH COMMAND / LEADERBOARD
     @commands.slash_command(description="Get top 10 richest players")
     async def rich(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_rich_leaderboard()
@@ -170,6 +201,10 @@ class Economy(commands.Cog):
         ----------
         item_name: The name of the item you want to buy.
         """
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         user = inter.author
         item_name = item_name.lower()
         item_price = funcs.get_item_buy_price(item_name)
@@ -194,6 +229,10 @@ class Economy(commands.Cog):
         ----------
         item_name: The name of the item you want to sell.
         """
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         item_name = item_name.lower()
         user = inter.author
 
@@ -206,6 +245,10 @@ class Economy(commands.Cog):
 # INVENTORY COMMAND
     @commands.slash_command(description="Shows your inventory")
     async def inventory(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         user = inter.author
         inventory_string = ""
         embeds = []
@@ -235,6 +278,10 @@ class Economy(commands.Cog):
         user: The user you want to give money to
         location: The location where you want to give money to. Must be either "wallet" or "bank".
         """
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
         location = location.lower()
         if location != "wallet" and location != "bank":
             await inter.send("You must specify location as either `wallet` or `bank`.", ephemeral=True)
@@ -256,7 +303,10 @@ class Economy(commands.Cog):
         amount: Amount of money you want to take from the user
         user: The user you want to take money from
         location: The location where you want to take money from. Must be either "wallet" or "bank".
-        """
+        """       
+        if db.check_user(user.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
         location = location.lower()
         if location != "cash" and location != "bank":
             await inter.send("You must specify location as either `cash` or `bank`.", ephemeral=True)
@@ -276,6 +326,10 @@ class Economy(commands.Cog):
         ----------
         bet: The amount of money you want to bet.
         """
+        
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
 
         user = inter.author
         wallet_balance = db.wallet(user.id)
@@ -303,6 +357,9 @@ class Economy(commands.Cog):
 # SHOP COMMAND
     @commands.slash_command(description="Shop where you can buy products")
     async def shop(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
         embeds = funcs.gen_shop_embed()
         await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
@@ -310,6 +367,9 @@ class Economy(commands.Cog):
     @commands.slash_command(description="Work for money. One hour cooldown")
     @commands.cooldown(1, 3600, type=commands.BucketType.user)
     async def work(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
 
         amount_of_work_money = random.randint(250, 5000)
 
@@ -319,22 +379,28 @@ class Economy(commands.Cog):
 # DAILY COMMAND
     @commands.slash_command()
     @commands.cooldown(1, 86400, type=commands.BucketType.user)
-    async def daily(self, ctx):
+    async def daily(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
 
         AMOUNT = 5000
 
-        db.update_wallet(ctx.author.id, AMOUNT)
-        await ctx.send(f"You claimed your daily and recieved **{AMOUNT}** Cash!")
+        db.update_wallet(inter.author.id, AMOUNT)
+        await inter.send(f"You claimed your daily and recieved **{AMOUNT}** Cash!")
 
 # WEEKLY COMMAND
     @commands.slash_command()
     @commands.cooldown(1, 604800, type=commands.BucketType.user)
-    async def weekly(self, ctx):
+    async def weekly(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
 
         AMOUNT = 25000
 
-        db.update_wallet(ctx.author.id, AMOUNT)
-        await ctx.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
+        db.update_wallet(inter.author.id, AMOUNT)
+        await inter.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
 
     # Testing purposes (The id is Anom4ly's)
 
