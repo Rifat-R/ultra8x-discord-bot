@@ -1,13 +1,13 @@
 {
     "items": {
-        "bat": {
-            "buy_price": 500,
-            "sell_price": 250,
+        "black colored name": {
+            "buy_price": 50000,
+            "sell_price": 25000,
             "description": "Whack other users with this bat"
         },
-        "ball": {
-            "buy_price": 500,
-            "sell_price": 250,
+        "dj role": {
+            "buy_price": 250000,
+            "sell_price": 125000,
             "description": "Throw an imaginary ball"
         }
     }
