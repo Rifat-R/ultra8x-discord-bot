@@ -2,140 +2,171 @@ import disnake
 from disnake.ext import commands
 from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
+import random
+
 
 class Economy(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(description="Checks user economy balance") 
-    async def balance(self, inter:disnake.CommandInteraction, user:disnake.Member = None):
-        """
-        Buy an item from the shop
-        Parameters
-        ----------
-        user: The user you want to check the balance of.
-        """
+# BALANCE COMMAND
+    @commands.slash_command(description="Get the balance amount of anyone in the server")
+    async def balance(self, inter: disnake.CommandInteraction, user: disnake.Member = None):
+
         if user is None:
             user = inter.author
 
-        pfp = user.display_avatar 
-        em = disnake.Embed(title = f"{user.name}'s balance", color = const.EMBED_COLOUR)
-        em.add_field(name = "Wallet balance:", value = f"**{db.wallet(user.id):,}**")
-        em.add_field(name = "Bank balance:", value = f"**{db.bank(user.id):,}**" )
-        em.set_thumbnail(url=pfp)
-        await inter.send(embed = em)
 
+        em = disnake.Embed(description=f"Leaderboard Rank: {db.get_rich_leaderboard()[0]}") #title=f"{user.name}'s Balance", color=const.EMBED_COLOUR
+        em.set_author(name=f"{inter.author.name}'s Balance", icon_url=inter.author.display_avatar)
+        em.add_field(name="💵 __Cash__     ", value=f"£**{db.wallet(user.id):,}**")
+        em.add_field(name="💳 __Bank__     ", value=f"£**{db.bank(user.id):,}**")
+        em.add_field(name="🏦 __Total__     ", value=f"£**{db.wallet(user.id) + db.bank(user.id):,}**")
+        em.set_thumbnail(url=user.display_avatar)
+        em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+        await inter.send(embed=em)
+
+# TRANSFER COMMAND
     @commands.slash_command(description="Transfer an amount of money to a user")
-    async def transfer(self, inter:disnake.CommandInteraction, user:disnake.Member, amount):
+    async def transfer(self, inter: disnake.CommandInteraction, user: disnake.Member, amount):
         """
-        Buy an item from the shop
-        Parameters
+        Transfer an amount of money to a user.
         ----------
         user: The user you want send money to.
         """
-        amount = int(amount) 
-        if amount > 0: 
-            if amount <= db.wallet(inter.author.id): 
-                db.deduct_wallet(inter.author.id, amount) 
-                db.update_wallet(user.id, amount) 
-                await inter.send(f"{inter.author.mention} has paid {user.mention} **{amount:,}**.") 
+        amount = int(amount)
+        if amount > 0:
+            if amount <= db.wallet(inter.author.id):
+                db.deduct_wallet(inter.author.id, amount)
+                db.update_wallet(user.id, amount)
+
+                em = disnake.Embed(title="Transferring Money", description=" ")
+                em.set_author(name=f"{inter.author.name}", url=inter.author.display_avatar)
+                em.add_field(name="From:", value=f"{inter.author.mention}", inline=True)
+                em.add_field(name="->", value=f"£{amount:,}", inline=True)
+                em.add_field(name="To:", value=f"{user.mention}", inline=True)
+                em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+
+                await inter.send(embed=em)
             else:
-                await inter.send(f"{inter.author.mention} You don't have that much ! You only have **{db.wallet(inter.author.id):,}** in your wallet!")
+                await inter.send(f"{inter.author.mention} You don't have that much ! You only have £**{db.wallet(inter.author.id):,}** in your wallet!")
         else:
             await inter.send(f"{inter.author.mention} Please enter a **valid** value!")
 
-    @commands.slash_command(description="Deposits money in your bank") 
-    async def deposit(self, inter:disnake.CommandInteraction, amount):
+# DEPOSIT COMMAND
+    @commands.slash_command(description="Deposits money in your bank")
+    async def deposit(self, inter: disnake.CommandInteraction, amount):
         """
-        Deposit money from your wallet balance
+        Deposit money from your cash balance
         Parameters
         ----------
         amount: The amount of money you want to deposit. Can also type 'all' to deposit all money from wallet.
         """
-        wallet_balance = db.wallet(inter.author.id) 
-        if amount == "all": 
-            if wallet_balance == 0: 
+        wallet_balance = db.wallet(inter.author.id)
+
+        if amount == "all":
+            if wallet_balance == 0:
                 await inter.send(f"<@{inter.author.id}> You do **not** have any funds to deposit!")
             else:
-                db.update_bank(inter.author.id,wallet_balance) 
-                await inter.send(f"<@{inter.author.id}> You have deposited **{wallet_balance:,}**. " + 
-                               f"Current wallet balance **{db.bank(inter.author.id):,}**.")
-                db.deduct_wallet(inter.author.id,wallet_balance) 
+                db.update_bank(inter.author.id, wallet_balance)
+                em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Deposited £{wallet_balance:,} to your bank!")
+                em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                await inter.send(embed=em)
+                #await inter.send(f"<@{inter.author.id}> You have deposited **{wallet_balance:,}**. " + f"Current wallet balance **{db.bank(inter.author.id):,}**.")
+                db.deduct_wallet(inter.author.id, wallet_balance)
         else:
-            if amount.isdecimal(): 
-                amount_int = int(amount) 
-                if amount_int > wallet_balance: 
-                    await inter.send(f"<@{inter.author.id}> You do not have the necessary funds to deposit.")			
+            if amount.isdecimal():
+                amount_int = int(amount)
+                if amount_int > wallet_balance:
+                    em = disnake.Embed(description=f"<:9772247001387827902:1009886637548908574> You don't have that much money to deposit. You currently have £{wallet_balance:,}.")
+                    em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                    em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                    await inter.send(embed=em)
+                    #await inter.send(f"<@{inter.author.id}> You do not have the necessary funds to deposit.")
                 else:
-                    
                     db.update_bank(inter.author.id, amount_int)
                     db.deduct_wallet(inter.author.id, amount_int)
-                    await inter.send(f"<@{inter.author.id}> You have deposited **{amount_int:,}**. "
-                                   +f"Current bank balance **{db.bank(inter.author.id):,}**.")		
+                    em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Deposited £{amount_int:,} to your bank!")
+                    em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                    em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                    await inter.send(embed=em)
+                    #await inter.send(f"<@{inter.author.id}> You have deposited **{amount_int:,}**. " + f"Current bank balance **{db.bank(inter.author.id):,}**.")
             else:
-                await inter.send(f"<@{inter.author.id}> Please enter a valid number!") 
-                
+                await inter.send(f"<@{inter.author.id}> Please enter a valid number!")
 
+# WITHDRAW COMMAND
     @commands.slash_command(description="Withdraws money from bank balance to wallet balance")
-    async def withdraw(self, ctx, amount):
+    async def withdraw(self, inter: disnake.CommandInteraction, amount):
         """
         Withdraw money from your bank balance
         Parameters
         ----------
         amount: The amount of money you want to withdraw. Can also type 'all' to withdraw all money from bank.
         """
-        bank_balance = db.bank(ctx.author.id)
-        if amount == "all": 
-            if bank_balance == 0: 
-                await ctx.send(f"<@{ctx.author.id}> You do **not** have any funds to withdraw!")
-            else: 
-                db.update_wallet(ctx.author.id,bank_balance) 
-                await ctx.send(f"<@{ctx.author.id}> You have withdrawn **{bank_balance:,}**. "+
-                               f"Current wallet balance **{db.wallet(ctx.author.id):,}**.")
-                db.deduct_bank(ctx.author.id,bank_balance) 
+        bank_balance = db.bank(inter.author.id)
+        if amount == "all":
+            if bank_balance == 0:
+                await inter.send(f"<@{inter.author.id}> You do **not** have any money to withdraw!")
+            else:
+                db.update_wallet(inter.author.id, bank_balance)
+                em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Withdrew £{bank_balance:,} from your bank!")
+                em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                await inter.send(embed=em)
+                #await ctx.send(f"<@{ctx.author.id}> You have withdrawn **{bank_balance:,}**. " + f"Current wallet balance **{db.wallet(ctx.author.id):,}**.")
+                db.deduct_bank(inter.author.id, bank_balance)
         else:
             if amount.isdecimal():
                 amount_transferred = int(amount)
                 if amount_transferred > bank_balance:
-                    await ctx.send(f"<@{ctx.author.id}> You can only **withdraw** **{bank_balance:,}** or less.")			
+                    em = disnake.Embed(description=f"<:9772247001387827902:1009886637548908574> You don't have that much money to withdraw. You currently have £{bank_balance:,} in the bank.")
+                    em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                    em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                    await inter.send(embed=em)
+                    #await inter.send(f"<@{inter.author.id}> You can only **withdraw** **{bank_balance:,}** or less.")
                 else:
-                    db.update_wallet(ctx.author.id, amount_transferred)
-                    db.deduct_bank(ctx.author.id, amount_transferred)
-                    await ctx.send(f"<@{ctx.author.id}> You have withdrawn **{amount_transferred:,}**. "+
-                                   f"Current wallet balance **{db.wallet(ctx.author.id):,}**.")		
+                    db.update_wallet(inter.author.id, amount_transferred)
+                    db.deduct_bank(inter.author.id, amount_transferred)
+                    em = disnake.Embed(description=f"<:9772246995138191462:1009886633920839751> Withdrew £{amount_transferred:,} from your bank! Current balance: £{db.bank(inter.author.id):,}")
+                    em.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+                    em.set_footer(text=f"Requested By: {inter.author.name} | {inter.user.id}")
+                    await inter.send(embed=em)
+                    #await inter.send(f"<@{inter.author.id}> You have withdrawn **{amount_transferred:,}**. " + f"Current wallet balance **{db.wallet(inter.author.id):,}**.")
             else:
-                await ctx.send(f"<@{ctx.author.id}> Please enter a valid **number**!")
-                
-                
+                await inter.send(f"<@{inter.author.id}> Please enter a valid **number**!")
+
+# RICH COMMAND / LEADERBOARD
     @commands.slash_command(description="Get top 10 richest players")
-    async def rich(self, inter:disnake.CommandInteraction):
+    async def rich(self, inter: disnake.CommandInteraction):
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_rich_leaderboard()
         counter = 1
-        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5)) #All infraction divided in lists of length 5 (so we can paginate)
+        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5))  # All infraction divided in lists of length 5 (so we can paginate)
+
         for leaderboard in divived_leaderboard_list:
-            embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string, color = const.EMBED_COLOUR)
+            embed = disnake.Embed(title=f"Economy Leaderboard", description=leaderboard_string, color=const.EMBED_COLOUR)
             embeds.append(embed)
+
             for row in leaderboard:
-                #indexes represent location of column in row log table
-                user_mention = f"`{row[0]}`"
+                # indexes represent location of column in row log table
+                user_mention = f"__{row[0]}__"
                 networth = row[1]
-                embed.add_field(name = f"{counter})" , value = f"User: {user_mention}\n Networth: `{networth:,}`\n",inline=False)
+                embed.add_field(name=f"{counter}. {user_mention}", value=f"Networth: £{networth:,}\n", inline=False)
                 counter += 1
+
         if len(embeds) == 0:
-            await inter.send(f"No one in this server has been registered to the bot. Start by typing in chat.✅", ephemeral=True)
+            await inter.send(f":908848747868454942: No one in this server has been registered to the bot. Start by typing in chat.", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
-            
-            
-            
+
+# BUY COMMAND
     @commands.slash_command(description="Buy an item from the shop")
-    async def buy(self, inter:disnake.CommandInteraction, item_name):
+    async def buy(self, inter: disnake.CommandInteraction, item_name):
         """
         Buy an item from the shop
-        Parameters
         ----------
         item_name: The name of the item you want to buy.
         """
@@ -146,138 +177,209 @@ class Economy(commands.Cog):
         if wallet_balance < item_price:
             await inter.send(f"You don't have enough money to buy this item!", ephemeral=True)
             return
-        
+
         try:
             db.buy_item(user.id, item_name)
         except(sqlite3.IntegrityError):
             await inter.send(f"You already have that item in your inventory!", ephemeral=True)
             return
-            
+
         await inter.send(f"You have bought `{item_name}` for **{item_price}**.")
-        
+
+# SELL COMMAND
     @commands.slash_command(description="Sell an item from your inventory")
-    async def sell(self, inter:disnake.CommandInteraction, item_name):
+    async def sell(self, inter: disnake.CommandInteraction, item_name):
         """
         Sell an item from your inventory
-        Parameters
         ----------
         item_name: The name of the item you want to sell.
         """
         item_name = item_name.lower()
         user = inter.author
-        
+
         if len(db.get_item(user.id, item_name)) == 0:
             await inter.send(f"You do not have that item in your inventory!", ephemeral=True)
             return
         db.sell_item(inter.author.id, item_name)
         await inter.send(f"You have sold `{item_name}` for **{funcs.get_item_sell_price(item_name)}**.")
-        
-        
-    @commands.slash_command(description = "Shows your inventory")
-    async def inventory(self, inter:disnake.CommandInteraction):
+
+# INVENTORY COMMAND
+    @commands.slash_command(description="Shows your inventory")
+    async def inventory(self, inter: disnake.CommandInteraction):
         user = inter.author
         inventory_string = ""
         embeds = []
         inventory_list = db.get_user_inventory(user.id)
         counter = 1
-        divided_inventory_list = list(pagination.divide_list(inventory_list, 5)) #All infraction divided in lists of length 5 (so we can paginate)
+        divided_inventory_list = list(pagination.divide_list(inventory_list, 5))  # All infraction divided in lists of length 5 (so we can paginate)
         for inventory in divided_inventory_list:
             for row in inventory:
                 item = f"{row[1]}"
                 inventory_string += f"• `{item.capitalize()}`\n"
                 counter += 1
-            embed = disnake.Embed(title=f"Economy inventory", description=inventory_string, color = const.EMBED_COLOUR)
+            embed = disnake.Embed(title=f"Economy inventory", description=inventory_string, color=const.EMBED_COLOUR)
             embeds.append(embed)
         if len(embeds) == 0:
             await inter.send(f"You have no items in your inventory! Start by looking at the shop!", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
-        
-                
 
-                
+# GIVE COMMAND (ADMIN ONLY)
+    @commands.has_role(const.STAFF_ROLE)
+    @commands.slash_command(description="Give user money")
+    async def give(self, inter: disnake.CommandInteraction, amount: int, user: disnake.Member, location: str):
+        """
+        Give a user a sum of money in their wallet or bank
+        ----------
+        amount: Amount of money you want to give the user
+        user: The user you want to give money to
+        location: The location where you want to give money to. Must be either "wallet" or "bank".
+        """
+        location = location.lower()
+        if location != "wallet" and location != "bank":
+            await inter.send("You must specify location as either `wallet` or `bank`.", ephemeral=True)
+            return
+        if location == "wallet":
+            db.update_wallet(user.id, amount)
+        if location == "bank":
+            db.update_bank(user.id, amount)
+
+        await inter.send(f"Gave **{amount:,}** to {user.mention}'s {location}", ephemeral=True)
+
+# TAKE COMMAND (ADMIN ONLY)
+    @commands.has_role(const.STAFF_ROLE)
+    @commands.slash_command(description="Give user money")
+    async def take(self, inter: disnake.CommandInteraction, amount: int, user: disnake.Member, location: str):
+        """
+        Take a sum of money from a user either from their wallet or bank
+        ----------
+        amount: Amount of money you want to take from the user
+        user: The user you want to take money from
+        location: The location where you want to take money from. Must be either "wallet" or "bank".
+        """
+        location = location.lower()
+        if location != "cash" and location != "bank":
+            await inter.send("You must specify location as either `cash` or `bank`.", ephemeral=True)
+            return
+        if location == "cash":
+            db.deduct_wallet(user.id, amount)
+        if location == "bank":
+            db.deduct_bank(user.id, amount)
+
+        await inter.send(f"Took **{amount:,}** from {user.mention}'s {location}", ephemeral=True)
+
+# BLACKJACK COMMAND
     @commands.slash_command(description="Blackjack game")
-    async def blackjack(self, inter:disnake.CommandInteraction, bet:int):
+    async def blackjack(self, inter: disnake.CommandInteraction, bet: int):
         """
         Game
-        Parameters
         ----------
-        bet: The amount of money you want to bet. Must be atleast 500
+        bet: The amount of money you want to bet.
         """
+
         user = inter.author
         wallet_balance = db.wallet(user.id)
-        if bet < 500:
-            await inter.send("You must bet atleast 500", ephemeral=True)
+        minimum_bet = 500
+        maximum_bet = 500_000
+
+        if bet < minimum_bet:
+            await inter.send(f"You must bet at least £{minimum_bet:,}", ephemeral=True)
+            return
+        if bet > maximum_bet:
+            await inter.send(f"Maximum bet limit is: £{maximum_bet:,}", ephemeral=True)
             return
         if wallet_balance < bet:
-            await inter.send(f"You do not have {bet} in your wallet!", ephemeral=True)
+            await inter.send(f"You do not have £{bet:,} in your wallet!", ephemeral=True)
             return
-        
+
         db.deduct_wallet(user.id, bet)
         bj = blackjack.blackjack(inter, self.bot.user.name, bet)
         description = f"You are now betting **{bet:,}**"
-        
+
         embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards, description=description)
 
-        await inter.send(embed=embed,view=bj)
-        
+        await inter.send(embed=embed, view=bj)
+
+# SHOP COMMAND
     @commands.slash_command(description="Shop where you can buy products")
-    async def shop(self, inter:disnake.CommandInteraction):
+    async def shop(self, inter: disnake.CommandInteraction):
         embeds = funcs.gen_shop_embed()
         await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
-    
-                
+
+# WORK COMMAND
     @commands.slash_command(description="Work for money. One hour cooldown")
-    @commands.cooldown(1,3600,type=commands.BucketType.user)
-    async def work(self, inter:disnake.CommandInteraction):
-        amount_of_money = 5000
-        db.update_wallet(inter.author.id, amount_of_money)
-        await inter.send(f"You worked and gained **{amount_of_money}**. Enjoy!", ephemeral=True)
-                
-                
+    @commands.cooldown(1, 3600, type=commands.BucketType.user)
+    async def work(self, inter: disnake.CommandInteraction):
+
+        amount_of_work_money = random.randint(250, 5000)
+
+        db.update_wallet(inter.author.id, amount_of_work_money)
+        await inter.send(f"You worked and gained **{amount_of_work_money}**. Enjoy!", ephemeral=False)
+
+# DAILY COMMAND
     @commands.slash_command()
-    @commands.cooldown(1,86400,type=commands.BucketType.user)
+    @commands.cooldown(1, 86400, type=commands.BucketType.user)
     async def daily(self, ctx):
+
         AMOUNT = 5000
+
         db.update_wallet(ctx.author.id, AMOUNT)
         await ctx.send(f"You claimed your daily and recieved **{AMOUNT}** Cash!")
-        
+
+# WEEKLY COMMAND
     @commands.slash_command()
-    @commands.cooldown(1,604800,type=commands.BucketType.user)
+    @commands.cooldown(1, 604800, type=commands.BucketType.user)
     async def weekly(self, ctx):
+
         AMOUNT = 25000
+
         db.update_wallet(ctx.author.id, AMOUNT)
         await ctx.send(f"You claimed your weekly and recieved **{AMOUNT}** Cash!")
-        
 
-#Testing purposes (The id is Anom4ly's)
+    # Testing purposes (The id is Anom4ly's)
 
     # @commands.command()
     # async def money(self, ctx):
     #     db.update_wallet(338764415358861314,1000000)
-        
 
-#Error handlers
 
+# ERROR HANDLING
     @daily.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the daily command."""
-        if isinstance(error, commands.CommandOnCooldown): 
+        if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 3600, 1)} hours.", ephemeral=True)
-            
+
     @weekly.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the weekly command."""
-        if isinstance(error, commands.CommandOnCooldown): 
+        if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 86400, 1)} days.", ephemeral=True)
-            
+
     @work.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the work command."""
-        if isinstance(error, commands.CommandOnCooldown): 
+        if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 60, 1)} minutes.", ephemeral=True)
+
+    @give.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors"""
+        if isinstance(error, commands.MissingRole):
+            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral=True)
+
+    @take.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors"""
+        if isinstance(error, commands.MissingRole):
+            await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral=True)
+
+    #@balance.error
+    #async def CommandOnBalance(self, ctx: commands.Context, error: commands.CommandError):
+    #    """Handle errors"""
+    #    if isinstance(error, commands.CommandError):
+    #        await ctx.send(f"You are currently not registeredy to play economy. To start playing simply say something in the chat.", ephemeral=True)
 
 
 def setup(bot):
     bot.add_cog(Economy(bot))
-
