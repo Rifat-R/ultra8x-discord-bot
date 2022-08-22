@@ -1,4 +1,4 @@
-from utils import database as db, constants as const, pagination
+from utils import database as db, constants as const, pagination, serverconfig as conf
 import math
 import json
 import disnake
@@ -65,15 +65,15 @@ def gen_shop_embed():
     return embeds
 
 
-def gen_ordinal_prefix(number:int):
+def convert_to_ordinal(number:int):
     if number == 1:
-        return "st"
+        return f"{number}st"
     elif number == 2:
-        return "nd"
+        return f"{number}nd"
     elif number == 3:
-        return "rd"
+        return f"{number}rd"
     else:
-        return "th"
+        return f"{number}th"
     
     
     

@@ -1,6 +1,7 @@
 from disnake.ext import commands, tasks
+from disnake.ui import Button, View
 import disnake
-from utils import database as db, funcs, pagination
+from utils import database as db, funcs, pagination, constants as const
 
 class Levelling(commands.Cog):
 
@@ -34,8 +35,8 @@ class Levelling(commands.Cog):
         leaderboard_string = ""
         embeds = []
         leaderboard_list = db.get_leaderboard()
-        divived_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5))    #All infraction divided in lists of length 10 (so we can paginate)
-        for leaderboard in divived_leaderboard_list:
+        divided_leaderboard_list = list(pagination.divide_list(leaderboard_list, 5))    #All infraction divided in lists of length 10 (so we can paginate)
+        for leaderboard in divided_leaderboard_list:
             embed = disnake.Embed(title=f"Ranking Leaderboard", description=leaderboard_string)
             embeds.append(embed)
             for index, row in enumerate(leaderboard):
@@ -79,6 +80,67 @@ class Levelling(commands.Cog):
                              ")
         embed.set_thumbnail(url=user.display_avatar)
         await inter.send(embed=embed)
+        
+    @commands.slash_command(description="Reset your level or economy.")
+    async def reset(self, inter:disnake.CommandInteraction, sector:str):
+        """
+        Withdraw money from your bank balance
+        Parameters
+        ----------
+        sector: Can be only 'xp' or 'economy'. Reset's the stats of which sector you choose.
+        """
+        sector = sector.lower()
+        if sector != "xp" and sector != "economy":
+            await inter.send(f"You must pick between `xp` or `economy`", ephemeral = True)
+            return
+        
+        if sector == "xp":
+            reset_func = db.reset_levelling_sector
+        if sector == "economy":
+            reset_func = db.reset_economy
+            
+        reset_button = Button(label="Reset", style=disnake.ButtonStyle.danger)
+        cancel_button = Button(label="Cancel", style=disnake.ButtonStyle.green)
+        
+        
+        view = View()
+        async def reset_button_callback(interaction:disnake.CommandInteraction):
+            if interaction.author.id != inter.author.id:
+                await interaction.response.send_message(f"This is not your embed to use.", ephemeral = True)
+                return
+            reset_func(interaction.author.id)
+            embed = disnake.Embed(description = f"You have **RESET** your `{sector}` sector!", color = const.EMBED_COLOUR)
+            embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+            reset_button.disabled = True
+            cancel_button.disabled = True
+            await interaction.response.send_message(embed=embed)
+            await inter.edit_original_message(view=view)
+
+
+        async def cancel_button_callback(interaction:disnake.CommandInteraction):
+            embed = disnake.Embed(description = f"You have cancelled your `{sector}` reset.", color = const.EMBED_COLOUR)
+            embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+            reset_button.disabled = True
+            cancel_button.disabled = True
+            await interaction.response.send_message(embed=embed)
+            await inter.edit_original_message(view=view)
+            
+        reset_button.callback = reset_button_callback
+        cancel_button.callback = cancel_button_callback
+        view.add_item(reset_button)
+        view.add_item(cancel_button)
+        embed = disnake.Embed(description=f"Are you **SURE** you want to reset the following sector: `{sector}`", color = const.EMBED_COLOUR)
+        embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+        await inter.send(embed=embed, view=view)
+        
+        
+        
+            
+        
+        
+        
+    
+    
 
 def setup(bot):
     bot.add_cog(Levelling(bot))

@@ -34,8 +34,7 @@ class Economy(commands.Cog):
             return
         
         rank = db.get_rich_rank(user.id)
-        cardinal_number_prefix = funcs.gen_ordinal_prefix(rank)
-        rank = f"{rank}{cardinal_number_prefix}"
+        rank = funcs.convert_to_ordinal(rank)
 
         em = disnake.Embed(description=f"Leaderboard Rank: {rank}") #title=f"{user.name}'s Balance", color=const.EMBED_COLOUR
         em.set_author(name=f"{inter.author.name}'s Balance", icon_url=inter.author.display_avatar)

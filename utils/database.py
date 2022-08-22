@@ -74,6 +74,13 @@ def deduct_bank(user_id:int,money:int):
     db.c.execute(f"UPDATE user_data SET bank = bank - {money} WHERE user_id = {user_id}")
     db.conn.commit()
     db.conn.close()
+    
+def reset_economy(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET wallet = 0, bank = 0 WHERE user_id = ? ",(user_id, ))
+    db.commit()
+    db.close()
 
 def create(user_id:int, author:str):
     """Creates a blank account for the user in the user_data table.
@@ -143,8 +150,9 @@ def get_rich_leaderboard():
 def get_rich_rank(user_id:int):
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"SELECT ROW_NUMBER() OVER (ORDER BY (wallet + bank) DESC) row_num, user_id FROM user_data")
+    db.c.execute(f"SELECT ROW_NUMBER() OVER (ORDER BY (wallet + bank) DESC) row_num, user_id, (wallet+bank) FROM user_data")
     rich_rank_list = db.c.fetchall()
+    print(rich_rank_list)
     for rich_rank_tuple in rich_rank_list:
         if rich_rank_tuple[1] == user_id:
             return rich_rank_tuple[0]
@@ -240,6 +248,14 @@ def remove_infraction(user_id:int):
     
     
 #Levelling functions
+
+
+def reset_levelling_sector(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_data SET xp = 0, level = 0 WHERE user_id = ? ",(user_id, ))
+    db.commit()
+    db.close()
     
 def get_level(user_id:int):
     db = database(PLAYER_DATA)

@@ -71,5 +71,20 @@ def get_welcome_message(guild_id:str):
     if message is None or channel_id is None:
         return None, None
     return message, channel_id
+
+
+#Need to make make sure how I want to setup xp_rate
+# #Not multi-server
+# def get_xp_rate():
+#     db = SqliteDict(SERVER_CONF_NAME)
+#     xp_rate = db.get("xp_rate")
+#     return xp_rate
+
+# def set_xp_rate(xp_rate:int):
+#     db = SqliteDict(SERVER_CONF_NAME)
+#     db["xp_rate"] = xp_rate
+#     db.commit()
+#     db.close()
+#     print(f"Set XP rate to: {xp_rate}")        
     
     
