@@ -1,5 +1,7 @@
+from pydoc import describe
 import disnake
 from disnake.ext import commands
+import datetime
 from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
 import random
@@ -357,13 +359,66 @@ class Economy(commands.Cog):
 
         await inter.send(embed=embed, view=bj)
         
-    @commands.slash_command(description="Job list")
+#Job commands
+    @commands.slash_command()
+    async def job(self, ctx):
+        pass
+        
+    @job.sub_command(description="Job list", name = "list")
     async def job_list(self, inter:disnake.CommandInteraction):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
         embeds = funcs.gen_job_list_embed()
-        await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+        footer = "/job apply [job-name] to apply for a job. ─ "
+        await inter.send(embed=embeds[0], view=pagination.Menu(embeds, footer=footer))
+        
+    @job.sub_command(description="Apply for a job. use /job list to find a job.")
+    async def apply(self, inter:disnake.CommandInteraction, job_name):
+        job_name = job_name.lower()
+        user = inter.author
+        user_level = db.get_level(user.id)
+        try:
+            job_level = funcs.get_job_level_needed(job_name)
+        except KeyError:
+            await inter.send(f"That job does not exist! Choose a job from `/job list`", ephemeral=True)
+            return
+        if db.check_if_has_job(user.id) is True:
+            await inter.send(f"You already have a job. Please leave your current job with `/job leave`", ephemeral = True)
+        else:
+            if user_level < job_level:
+                await inter.send(f"You are not high level enough to apply for this job.", ephemeral = True)
+                return
+            
+            db.add_job(user.id, job_name)
+            await inter.send(f"Congratulation. You got the job `{job_name.capitalize()}`", ephemeral = True)
+            # embed = disnake.Embed(description=description)
+            # embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+            # await inter.send(embed=embed)
+            
+    @job.sub_command(description = "Leave your current job")
+    async def leave(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        if db.check_if_has_job(user.id) is False:
+            await inter.send(f"You don't have a job.", ephemeral = True)
+            return
+        job_name = db.get_job(user.id).capitalize()
+        db.remove_job(user.id)
+        await inter.send(f"You have successfully left your job `{job_name}`", ephemeral = True)
+        
+# WORK COMMAND
+    @job.sub_command(description="Work for money. One hour cooldown")
+    async def work(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+
+        amount_of_work_money = random.randint(250, 5000)
+
+        db.update_wallet(inter.author.id, amount_of_work_money)
+        await inter.send(f"You worked and gained **{amount_of_work_money}**. Enjoy!", ephemeral=False)   
+        
+        
 
 # SHOP COMMAND
     @commands.slash_command(description="Shop where you can buy products")
@@ -374,18 +429,6 @@ class Economy(commands.Cog):
         embeds = funcs.gen_shop_embed()
         await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
-# WORK COMMAND
-    @commands.slash_command(description="Work for money. One hour cooldown")
-    @commands.cooldown(1, 3600, type=commands.BucketType.user)
-    async def work(self, inter: disnake.CommandInteraction):
-        if db.check_user(inter.author.id) is False:
-            await inter.send(const.REGISTER_ERROR, ephemeral = True)
-            return
-
-        amount_of_work_money = random.randint(250, 5000)
-
-        db.update_wallet(inter.author.id, amount_of_work_money)
-        await inter.send(f"You worked and gained **{amount_of_work_money}**. Enjoy!", ephemeral=False)
 
 # DAILY COMMAND
     @commands.slash_command()
@@ -430,19 +473,22 @@ class Economy(commands.Cog):
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the daily command."""
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 3600, 1)} hours.", ephemeral=True)
+            time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
+            await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
 
     @weekly.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the weekly command."""
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 86400, 1)} days.", ephemeral=True)
+            time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
+            await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
 
     @work.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors for the work command."""
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"This command is on cooldown. Please try again after {round(error.retry_after / 60, 1)} minutes.", ephemeral=True)
+            time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
+            await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
 
     @give.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):

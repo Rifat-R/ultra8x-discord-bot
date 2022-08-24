@@ -2,7 +2,7 @@ import disnake
 from typing import List
 
 class Menu(disnake.ui.View):
-    def __init__(self, embeds: List[disnake.Embed]):
+    def __init__(self, embeds: List[disnake.Embed], footer = ""):
         super().__init__(timeout=None)
         self.embeds = embeds
         self.embed_count = 0
@@ -16,7 +16,7 @@ class Menu(disnake.ui.View):
 
         # Sets the footer of the embeds with their respective page numbers.
         for i, embed in enumerate(self.embeds):
-            embed.set_footer(text=f"Page {i + 1} of {len(self.embeds)}")
+            embed.set_footer(text=f"{footer}Page {i + 1} of {len(self.embeds)}")
 
     @disnake.ui.button(emoji="⏪", style=disnake.ButtonStyle.blurple)
     async def first_page(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):

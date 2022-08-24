@@ -42,8 +42,9 @@ def restore_database():
     player_data.commit()
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS user_job
     (
-    user_id INTEGER,
-    job TEXT
+    user_id INTEGER PRIMARY KEY,
+    job TEXT,
+    cooldown_timestamp TIMESTAMP
     ) 
     """)
     player_data.commit()

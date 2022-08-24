@@ -3,12 +3,12 @@
         "cashier": {
             "per_hour_wage": 8,
             "hours_per_day": 6,
-            "level_needed": "0"
+            "level_needed": 0
         },
         "receptionist": {
             "per_hour_wage": 9.50,
             "hours_per_day": 8,
-            "level_needed": "1"
+            "level_needed": 1
         }
     }
 }

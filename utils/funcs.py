@@ -32,12 +32,23 @@ def get_shop_dict():
         
     return shop_data
 
-def get_jobs_dict():
+
+#Job funcs
+def get_job_list_dict():
     with open("utils/jobs.json") as f:
         return json.load(f)
     
+    
+def get_job_info_dict(job_name):
+    job_list_dict = get_job_list_dict()
+    job_dict = job_list_dict["job_list"]
+    job_info_dict = job_dict[job_name]
+    return job_info_dict
+    
+
+
 def gen_job_list_embed():
-    job_list_data = get_jobs_dict()
+    job_list_data = get_job_list_dict()
     embeds = []
     job_description_string = """To apply for a job use `/job apply <job-id>`.
                                 You can only apply for jobs with 🔓
@@ -59,6 +70,21 @@ def gen_job_list_embed():
         
     return embeds
 
+def get_job_level_needed(job_name:str):
+    return get_job_info_dict(job_name)["level_needed"]
+
+def get_job_hours_per_day(job_name:str):
+    return get_job_info_dict(job_name)["hours_per_day"]
+
+def get_job_per_hour_wage(job_name:str):
+    return get_job_info_dict(job_name)["per_hour_wage"]
+
+def get_job_seconds(job_name:str):
+    return get_job_hours_per_day(job_name) * 3600
+
+
+
+#Shop funcs
 def get_item_buy_price(item_name:str):
     shop_data = get_shop_dict()
     items = shop_data["items"]

@@ -297,3 +297,43 @@ def get_leaderboard():
     db.c.execute(f"SELECT author, level, xp FROM user_data ORDER BY xp DESC LIMIT 30")
     infraction_list = db.c.fetchall()
     return infraction_list
+
+
+#Job functions
+
+def get_job(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT job FROM user_job WHERE user_id = ?", (user_id,))
+    job = db.c.fetchone()
+    return job[0]
+
+def add_job(user_id:int, job:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO user_job VALUES (?, ?)",(user_id, job))
+    db.commit()
+    db.close()
+    
+def remove_job(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM user_job WHERE user_id = ?",(user_id,))
+    db.commit()
+    db.close()
+    
+def get_job_cooldown_timestamp(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT cooldown_timestamp FROM user_job WHERE user_id = ?", (user_id,))
+    job = db.c.fetchone()
+    return job[0]
+    
+def check_if_has_job(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM user_job WHERE user_id = {user_id}")
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
