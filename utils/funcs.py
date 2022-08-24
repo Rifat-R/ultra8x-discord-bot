@@ -32,6 +32,33 @@ def get_shop_dict():
         
     return shop_data
 
+def get_jobs_dict():
+    with open("utils/jobs.json") as f:
+        return json.load(f)
+    
+def gen_job_list_embed():
+    job_list_data = get_jobs_dict()
+    embeds = []
+    job_description_string = """To apply for a job use `/job apply <job-id>`.
+                                You can only apply for jobs with 🔓
+                                Leave a job by using `/job leave.`"""
+    jobs_dict = job_list_data["job_list"]
+    counter = 1
+    divided_job_list = list(pagination.divide_list(list(jobs_dict),5))
+    for job_list in divided_job_list:
+        embed = disnake.Embed(title=f"Job list", description=job_description_string, color = const.EMBED_COLOUR)
+        embeds.append(embed)
+        for job_name in job_list:
+            per_hour_wage = jobs_dict[job_name]["per_hour_wage"]
+            hours_per_day = jobs_dict[job_name]["hours_per_day"]
+            level_needed = jobs_dict[job_name]["level_needed"]
+            job_name = job_name.capitalize()
+            embed.add_field(name = f"{counter}) __**{job_name}**__",
+                            value = f"> £{per_hour_wage} / hour \n> Maximum {hours_per_day} hours / day.\n> Required level to apply: `{level_needed}`", inline=False)
+            counter += 1
+        
+    return embeds
+
 def get_item_buy_price(item_name:str):
     shop_data = get_shop_dict()
     items = shop_data["items"]

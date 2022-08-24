@@ -356,6 +356,14 @@ class Economy(commands.Cog):
         embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards, description=description)
 
         await inter.send(embed=embed, view=bj)
+        
+    @commands.slash_command(description="Job list")
+    async def job_list(self, inter:disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        embeds = funcs.gen_job_list_embed()
+        await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
 # SHOP COMMAND
     @commands.slash_command(description="Shop where you can buy products")
