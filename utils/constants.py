@@ -12,7 +12,7 @@ STARTING_VALUE = 100
 MULTIPLIER = 1.25
 
 #Aesthetics
-EMBED_COLOUR = 0x036ffc
+EMBED_COLOUR = 0x87CEEB
 
 #Moderation
 STAFF_ROLE = ["staff", "mod_role"]  #Change this to whatever role you want to have access to moderation commands

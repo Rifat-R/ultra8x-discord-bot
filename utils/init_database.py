@@ -44,7 +44,17 @@ def restore_database():
     (
     user_id INTEGER PRIMARY KEY,
     job TEXT,
-    cooldown_timestamp TIMESTAMP
+    cooldown_timestamp TIMESTAMP,
+    working_status BIT DEFAULT 0
+    ) 
+    """)
+    player_data.commit()
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS tickets
+    (
+    user_id INTEGER PRIMARY KEY,
+    channel_id INTEGER,
+    reason TEXT,
+    created_at TIMESTAMP
     ) 
     """)
     player_data.commit()

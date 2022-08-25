@@ -243,11 +243,13 @@ class Moderation(commands.Cog):
         """Handle errors"""
         if isinstance(error, commands.MissingAnyRole): 
             await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
+            
     @infractions.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
         if isinstance(error, commands.MissingAnyRole): 
             await ctx.send(f"You do not have any of these roles: `{error.missing_roles}` to use this command.", ephemeral = True)
+            
     @remove_infractions.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""

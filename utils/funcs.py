@@ -79,7 +79,12 @@ def get_job_hours_per_day(job_name:str):
 def get_job_per_hour_wage(job_name:str):
     return get_job_info_dict(job_name)["per_hour_wage"]
 
-def get_job_seconds(job_name:str):
+def get_job_daily_wage(job_name:str):
+    hours = get_job_hours_per_day(job_name)
+    hourly_wage = get_job_per_hour_wage(job_name)
+    return hours * hourly_wage
+
+def get_job_cooldown_seconds(job_name:str):
     return get_job_hours_per_day(job_name) * 3600
 
 

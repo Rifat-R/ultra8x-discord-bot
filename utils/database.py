@@ -301,6 +301,31 @@ def get_leaderboard():
 
 #Job functions
 
+def set_working_status_true(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_job SET working_status = ? WHERE user_id = ?", (1, user_id))
+    db.commit()
+    db.close()
+
+def set_working_status_false(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_job SET working_status = ? WHERE user_id = ?", (0, user_id))
+    db.commit()
+    db.close()
+    
+def get_working_status(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT working_status FROM user_job WHERE user_id = ?", (user_id,))
+    working_status = db.c.fetchone()[0]
+    if working_status == 1:
+        return True
+    elif working_status == 0:
+        return False
+
+
 def get_job(user_id:int):
     db = database(PLAYER_DATA)
     db.start_connection()
@@ -311,7 +336,7 @@ def get_job(user_id:int):
 def add_job(user_id:int, job:str):
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"INSERT INTO user_job VALUES (?, ?)",(user_id, job))
+    db.c.execute(f"INSERT INTO user_job (user_id, job, cooldown_timestamp) VALUES (?, ?, ?)",(user_id, job, datetime.now()))
     db.commit()
     db.close()
     
@@ -328,6 +353,13 @@ def get_job_cooldown_timestamp(user_id):
     db.c.execute(f"SELECT cooldown_timestamp FROM user_job WHERE user_id = ?", (user_id,))
     job = db.c.fetchone()
     return job[0]
+
+def reset_job_cooldown(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"UPDATE user_job SET cooldown_timestamp = ? WHERE user_id = ?", (datetime.now(), user_id))
+    db.commit()
+    db.close()
     
 def check_if_has_job(user_id):
     db = database(PLAYER_DATA)
@@ -337,3 +369,44 @@ def check_if_has_job(user_id):
         return False
     else:
         return True
+    
+    
+#Ticket functions
+
+def add_ticket(user_id:int, channel_id:int, reason:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO tickets (user_id, channel_id, reason, created_at) VALUES (?, ?, ?, ?)",(user_id, channel_id, reason, datetime.now()))
+    db.commit()
+    db.close()
+    
+def remove_ticket(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM tickets WHERE user_id = ?",(user_id,))
+    db.commit()
+    db.close()
+    
+def get_ticket_channel(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT channel_id FROM ticket WHERE user_id = ?", (user_id,))
+    job = db.c.fetchone()
+    return job[0]
+
+def get_ticket_list():
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT user_data.author, tickets.channel_id, tickets.reason, tickets.created_at FROM tickets INNER JOIN user_data ON user_data.user_id = tickets.user_id ORDER BY tickets.created_at DESC")
+    ticket_list = db.c.fetchall()
+    return ticket_list
+    
+def check_if_has_ticket(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM tickets WHERE user_id = {user_id}")
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+    

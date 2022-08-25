@@ -4,6 +4,7 @@ from disnake.ext import commands
 import datetime
 from utils import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
+import asyncio
 import random
 
 
@@ -404,21 +405,50 @@ class Economy(commands.Cog):
             return
         job_name = db.get_job(user.id).capitalize()
         db.remove_job(user.id)
+        db.set_working_status_false(user.id)
         await inter.send(f"You have successfully left your job `{job_name}`", ephemeral = True)
         
 # WORK COMMAND
-    @job.sub_command(description="Work for money. One hour cooldown")
+    @commands.slash_command(description="Work to make money and XP")
     async def work(self, inter: disnake.CommandInteraction):
+        user = inter.author
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
-
-        amount_of_work_money = random.randint(250, 5000)
-
-        db.update_wallet(inter.author.id, amount_of_work_money)
-        await inter.send(f"You worked and gained **{amount_of_work_money}**. Enjoy!", ephemeral=False)   
+        
+        if db.check_if_has_job(user.id) is False:
+            await inter.send(f"You don't have a job. apply for one with `/job apply`", ephemeral = True)
+            return
+        
+        #Gets the job that the user has
+        user_job_name = db.get_job(user.id)
+        #Gets the time needed to complete job in seconds
+        cooldown_time = funcs.get_job_cooldown_seconds(user_job_name)
+        job_cooldown_timestamp = db.get_job_cooldown_timestamp(user.id)
+        current_time = datetime.datetime.now()
+        wage = funcs.get_job_daily_wage(user_job_name)
+        time_difference = (current_time - job_cooldown_timestamp).seconds
+        formatted_time = str(datetime.timedelta(seconds = cooldown_time - time_difference))
+        
+        if db.get_working_status(user.id) is True:
+            await inter.send(f"You are working right now. You will finish in `{formatted_time}` and you will get £{wage}")
+            return
         
         
+        db.set_working_status_true(user.id)
+        await inter.send(f"You have started working as a `{user_job_name.capitalize()}`.")        
+        await asyncio.sleep(cooldown_time)
+        db.reset_job_cooldown(user.id)
+        db.set_working_status_false(user.id)
+        db.update_wallet(user.id, wage)
+        await inter.send(f"You have made £{wage} working as a `{user_job_name.capitalize()}`")
+            
+            
+        
+
+
+        
+    
 
 # SHOP COMMAND
     @commands.slash_command(description="Shop where you can buy products")
@@ -442,6 +472,18 @@ class Economy(commands.Cog):
 
         db.update_wallet(inter.author.id, AMOUNT)
         await inter.send(f"You claimed your daily and recieved **{AMOUNT}** Cash!")
+        
+    @commands.slash_command()
+    @commands.cooldown(1, 600, type=commands.BucketType.user)
+    async def beg(self, inter: disnake.CommandInteraction):
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+
+        random_amount = random.randint(25,150)
+
+        db.update_wallet(inter.author.id, random_amount)
+        await inter.send(f"Random stranger gave you £**{random_amount}**.")
 
 # WEEKLY COMMAND
     @commands.slash_command()
@@ -459,13 +501,16 @@ class Economy(commands.Cog):
     # Testing purposes (The id is Anom4ly's)
     
     # @commands.slash_command(description="pog")
-    # async def test(self, ctx, user:disnake.Member):
-    #     rank = db.get_rich_rank(user.id)
-    #     await ctx.send(f"Their rank is: `{rank}`")
+    # async def test(self, ctx):
+    #     db.set_working_status_false(ctx.author.id)
+    #     await ctx.send(f"Set working status as false", ephemeral = True)
 
     # @commands.command()
     # async def money(self, ctx):
     #     db.update_wallet(338764415358861314,1000000)
+
+
+
 
 
 # ERROR HANDLING
@@ -475,6 +520,19 @@ class Economy(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
             await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
+            
+        else:
+            error.with_traceback()
+            
+    @beg.error
+    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
+        """Handle errors for the daily command."""
+        if isinstance(error, commands.CommandOnCooldown):
+            time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
+            await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
+        
+        else:
+            error.with_traceback()
 
     @weekly.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
@@ -482,31 +540,28 @@ class Economy(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
             await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
-
-    @work.error
-    async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
-        """Handle errors for the work command."""
-        if isinstance(error, commands.CommandOnCooldown):
-            time = str(datetime.timedelta(seconds = error.retry_after))[:-7]
-            await ctx.send(f"This command is on cooldown. You will be able to use it in `{time}`", ephemeral=True)
-
+            
+        else:
+            error.with_traceback()
+        
     @give.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
         if isinstance(error, commands.MissingRole):
             await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral=True)
+            
+        else:
+            error.with_traceback()
 
     @take.error
     async def CommandOnCooldown(self, ctx: commands.Context, error: commands.CommandError):
         """Handle errors"""
         if isinstance(error, commands.MissingRole):
             await ctx.send(f"You do not have the `{error.missing_role}` command to use this command", ephemeral=True)
+            
+        else:
+            error.with_traceback()
 
-    #@balance.error
-    #async def CommandOnBalance(self, ctx: commands.Context, error: commands.CommandError):
-    #    """Handle errors"""
-    #    if isinstance(error, commands.CommandError):
-    #        await ctx.send(f"You are currently not registeredy to play economy. To start playing simply say something in the chat.", ephemeral=True)
 
 
 def setup(bot):
