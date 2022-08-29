@@ -410,3 +410,25 @@ def check_if_has_ticket(user_id):
     else:
         return True
     
+    
+#Company functions
+def create_company(company_name:str, user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO companies (company_name, user_id) VALUES (?, ?)",(company_name, user_id))
+    db.commit()
+    db.close()
+    
+def get_company_name(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT company_name FROM companies WHERE user_id = ?",(user_id,))
+    return db.c.fetchone()[0]
+
+def remove_company(user_id:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM companies WHERE user_id = ?",(user_id,))
+    db.commit()
+    db.close()
+

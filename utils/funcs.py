@@ -134,4 +134,18 @@ def convert_to_ordinal(number:int):
         return f"{number}th"
     
     
+#Factory funcs
+def get_factories_dict():
+    with open("utils/factories.json") as f:
+        factory = json.load(f)
+        
+    return factory["factories"]
+
+def get_products_dict():
+    with open("utils/factories.json") as f:
+        factory = json.load(f)
+        
+    return factory["products"]
+
+    
     
