@@ -28,6 +28,16 @@ class Company(commands.Cog):
 
         await inter.send(f"Created company `{company_name}`")
 
+    @company.sub_command(description="Delete your company")
+    async def delete(self, inter:disnake.CommandInteraction):
+        user = inter.author
+        if db.check_if_has_company(user.id) is False:
+            await inter.send(f"You don't have a company!", ephemeral = True)
+            return
+        company_name = db.get_company_name(user.id)
+        
+        db.delete_company(company_name)
+        await inter.send(f"Deleted company `{company_name}`")
         
 
 

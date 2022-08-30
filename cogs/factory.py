@@ -58,6 +58,32 @@ class Factory(commands.Cog):
             embed.add_field(name=f"{product_emoji} {product_name} - £{product_price:,} / Item", value=f"> ID: {product_name.lower()}\n> Production: 1x every {product_time} hours", inline=False)
         embed.set_footer(text=f"Requested By: {user.name} | {user.id}")
         await inter.send(embed=embed)
+      
+    @factory.sub_command(description="Buy a factory from /factory store")
+    async def buy(self, inter:disnake.CommandInteraction, factory_id:str):  
+        factory_id = factory_id.lower()
+        user = inter.author
+        wallet_balance = db.wallet(user.id)
+        if db.check_if_has_company(user.id) is False:
+            await inter.send(f"You do not have a company. Buy one using `/company create`", ephemeral=True)
+            return
+        if funcs.check_if_factory_exists(factory_id) is False:
+            await inter.send(f"That factory ID does not exist! Choose a factory from `/factory store`", ephemeral = True)
+            return
+        
+        company_name = db.get_company_name(user.id)
+        try:
+            db.add_factory(company_name, factory_id)
+        except sqlite3.IntegrityError:
+            await inter.send(f"You already have that factory!", ephemeral = True)
+            return
+        factory_price = funcs.get_factory_price(factory_id)
+        if wallet_balance < factory_price:
+            await inter.send(f"You do not have enough money in your wallet to buy this factory.", ephemeral=True)
+            return
+        db.deduct_wallet(user.id, factory_price)
+        await inter.send(f"You bought a Factory with the ID: `{factory_id}` Price: `{factory_price:,}`")
+    
             
 
             

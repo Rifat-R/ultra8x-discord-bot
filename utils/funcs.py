@@ -141,6 +141,20 @@ def get_factories_dict():
         
     return factory["factories"]
 
+def get_factory_price(factory_id):
+    factories_dict = get_factories_dict()
+    factory_info = factories_dict[factory_id]
+    price = factory_info["price"]
+    return price
+
+def check_if_factory_exists(factory_id:str):
+    factories_dict = get_factories_dict()
+    if factory_id in factories_dict:
+        return True
+    else:
+        return False
+        
+
 def get_products_dict():
     with open("utils/factories.json") as f:
         factory = json.load(f)

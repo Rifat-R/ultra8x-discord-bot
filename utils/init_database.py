@@ -63,7 +63,8 @@ def restore_database():
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS companies
     (
     company_name TEXT UNIQUE,
-    user_id INTEGER UNIQUE
+    user_id INTEGER UNIQUE,
+    created_at TIMESTAMP
     ) 
     """)
     player_data.commit()

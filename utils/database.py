@@ -415,7 +415,7 @@ def check_if_has_ticket(user_id):
 def create_company(company_name:str, user_id:int):
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"INSERT INTO companies (company_name, user_id) VALUES (?, ?)",(company_name, user_id))
+    db.c.execute(f"INSERT INTO companies (company_name, user_id, created_at) VALUES (?, ?, ?)",(company_name, user_id, datetime.now()))
     db.commit()
     db.close()
     
@@ -425,10 +425,46 @@ def get_company_name(user_id:int):
     db.c.execute(f"SELECT company_name FROM companies WHERE user_id = ?",(user_id,))
     return db.c.fetchone()[0]
 
-def remove_company(user_id:int):
+def check_if_has_company(user_id):
     db = database(PLAYER_DATA)
     db.start_connection()
-    db.c.execute(f"DELETE FROM companies WHERE user_id = ?",(user_id,))
+    db.c.execute(f"SELECT * FROM companies WHERE user_id = {user_id}")
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+
+def delete_company(company_name:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM companies WHERE company_name = ?",(company_name,))
+    db.c.execute(f"DELETE FROM factories WHERE company_name = ?",(company_name,))
+    db.c.execute(f"DELETE FROM running_factories WHERE company_name = ?",(company_name,))
     db.commit()
     db.close()
+    
+#Factory functions
+
+def add_factory(company_name:str, factory_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO factories (company_name,factory_id) VALUES (?,?)",(company_name, factory_id))
+    db.commit()
+    db.close()
+    
+def delete_factory(company_name:int, factory_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM factories WHERE company_name = ? AND factory_id = ?",(company_name, factory_id))
+    db.commit()
+    db.close()
+    
+def check_if_has_factory(company_name:str, factory_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM factories WHERE company_name = ? AND factory_id = ?", (company_name, factory_id))
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
 
