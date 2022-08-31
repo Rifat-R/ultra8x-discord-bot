@@ -433,7 +433,24 @@ def check_if_has_company(user_id):
         return False
     else:
         return True
+    
+def company_inventory_add_product(company_name:int, product_id:str, count:int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    try:
+        db.c.execute(f"INSERT INTO company_inventory (company_name, product_id, count) VALUES (?, ?, ?)",(company_name, product_id, count))
+    except sqlite3.IntegrityError:
+        db.c.execute(f"UPDATE company_inventory SET count = count + ? WHERE company_name = ? AND product_id = ?", (count, company_name, product_id))
+    
+    db.commit()
+    db.close()
 
+def get_company_inventory_list(company_name: int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT product_id, count FROM company_inventory WHERE company_name = ?", (company_name,))
+    return db.c.fetchall()
+    
 def delete_company(company_name:int):
     db = database(PLAYER_DATA)
     db.start_connection()

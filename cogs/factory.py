@@ -97,7 +97,6 @@ class Factory(commands.Cog):
 
         factories_dict = funcs.get_factories_dict()
         owned_factory_list = db.get_owned_factories(company_name)
-        print(owned_factory_list)
         for factory_id in factories_dict:
             six_black_squares = ":black_large_square::black_large_square::black_large_square::black_large_square::black_large_square::black_large_square:"
             factory_info = factories_dict[factory_id]
@@ -122,17 +121,12 @@ class Factory(commands.Cog):
                         factory_status = f"in `{str(timedelta_until_completion)[:-7]}`"
                         
                     time_completed_so_far = (datetime.timedelta(hours=time_until_completion) - timedelta_until_completion).total_seconds()
-                    print(time_completed_so_far)
-                    print(time_until_completion)
-                    print((time_until_completion / 24))
-                    print(f"Time so far: {time_completed_so_far}")
+                    
                     products_completed = math.floor(time_completed_so_far // (product_hours * 3600))
-                    print(products_completed)
                     for _ in range(products_completed):
                         six_black_squares = six_black_squares.replace(":gear:",product_emoji,1)
 
 
-            print(six_black_squares)
             embed.add_field(name=f"{factory_name.capitalize()}", value = f"{six_black_squares}\n{factory_status}")
 
 
@@ -204,6 +198,41 @@ class Factory(commands.Cog):
         db.stop_running_factory(company_name, factory_id)
         await inter.send(f"You have stopped Factory `{factory_id}` from production")
                
+
+    @factory.sub_command(description="Collect items that are ready from production")
+    async def collect(self, inter:disnake.CommandInteraction, factory_id:str):
+        user = inter.author
+        if db.check_if_has_company(user.id) is False:
+            await inter.send(f"You do not have a company. Buy one using `/company create`", ephemeral=True)
+            return
+        company_name = db.get_company_name(user.id)
+        if funcs.check_if_factory_exists(factory_id) is False:
+            await inter.send(f"That factory ID does not exist! Choose a factory from `/factory store`", ephemeral = True)
+            return
+        if db.check_if_has_factory(company_name, factory_id) is False:
+            await inter.send(f"You do not own that factory! Buy one from `/factory store`", ephemeral = True)
+            return
+        if db.check_if_has_running_factory(company_name, factory_id) is False:
+            await inter.send(f"That factory has not started production yet!", ephemeral = True)
+            return
+
+
+        product_id = db.get_running_factory_product_id(company_name, factory_id)
+        products_dict = funcs.get_products_dict()
+        product_info = products_dict[product_id]
+        product_name = product_info["name"]
+        product_emoji = product_info["emoji"]
+        product_hours = product_info["hours"]
+        time_until_completion = product_hours * 6
+        db_until_completion_timestamp = db.get_running_factory_timestamp(company_name, factory_id)
+        timedelta_until_completion = db_until_completion_timestamp - datetime.datetime.now()
+        if str(timedelta_until_completion)[0] != "-":
+            await inter.send(f"Factory ID `{factory_id}` is still producing products!", ephemeral = True)
+            return
+        
+        db.company_inventory_add_product(company_name, product_id, 6)
+        db.stop_running_factory(company_name, factory_id)
+        await inter.send(f"You collected 6 {product_emoji}{product_name}'s! Added to company inventory")
 
 
 def setup(bot):

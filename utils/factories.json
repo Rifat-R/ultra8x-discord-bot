@@ -41,7 +41,7 @@
             "iphone": {
                 "name" : "iPhone",
                 "price": 500,
-                "hours": 6,
+                "hours": 0.005,
                 "emoji": ":mobile_phone:"
             },
             "laptop": {

@@ -68,6 +68,17 @@ def restore_database():
     ) 
     """)
     player_data.commit()
+
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS company_inventory
+    (
+    company_name TEXT,
+    product_id TEXT,
+    count INT,
+    PRIMARY KEY (company_name, product_id)
+    ) 
+    """)
+    player_data.commit()
+
 #Factory
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS factories
     (
