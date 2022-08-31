@@ -161,5 +161,13 @@ def get_products_dict():
         
     return factory["products"]
 
+
     
+def check_if_product_exists(product_id:str):
+    products_dict = get_products_dict()
+    if product_id in products_dict:
+        return True
+    else:
+        return False
+        
     

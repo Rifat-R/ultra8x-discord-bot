@@ -39,16 +39,19 @@
         },
         "products": {
             "iphone": {
+                "name" : "iPhone",
                 "price": 500,
                 "hours": 6,
                 "emoji": ":mobile_phone:"
             },
             "laptop": {
+                "name" : "Laptop",
                 "price": 1200,
                 "hours": 12,
                 "emoji": ":computer:"
             },
             "car": {
+                "name" : "Car",
                 "price": 120000,
                 "hours": 72,
                 "emoji": ":red_car:"

@@ -451,18 +451,64 @@ def add_factory(company_name:str, factory_id):
     db.c.execute(f"INSERT INTO factories (company_name,factory_id) VALUES (?,?)",(company_name, factory_id))
     db.commit()
     db.close()
+  
+    
+def get_owned_factories(company_name:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT factory_id FROM factories WHERE company_name = ?", (company_name,))
+    owned_factories = db.c.fetchall()
+    owned_factories = [i[0] for i in owned_factories]
+    return owned_factories
     
 def delete_factory(company_name:int, factory_id):
     db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"DELETE FROM factories WHERE company_name = ? AND factory_id = ?",(company_name, factory_id))
     db.commit()
+    db.c.execute(f"DELETE FROM running_factories WHERE company_name = ? AND factory_id = ?",(company_name, factory_id))
+    db.commit()
     db.close()
+    
+def add_running_factory(company_name:str, factory_id, product_id, timestamp_until_completion):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO running_factories (company_name,factory_id,product_id,until_completion) VALUES (?,?,?,?)",(company_name, factory_id,product_id,timestamp_until_completion))
+    db.commit()
+    db.close()    
+    
+def stop_running_factory(company_name:int, factory_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM running_factories WHERE company_name = ? AND factory_id = ?",(company_name, factory_id))
+    db.commit()
+    db.close()
+    
+def get_running_factory_timestamp(company_name:str, factory_id:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT until_completion FROM running_factories WHERE company_name = ? AND factory_id = ?", (company_name,factory_id))
+    return db.c.fetchone()[0]
+
+def get_running_factory_product_id(company_name:str, factory_id:str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT product_id FROM running_factories WHERE company_name = ? AND factory_id = ?", (company_name,factory_id))
+    return db.c.fetchone()[0]
     
 def check_if_has_factory(company_name:str, factory_id):
     db = database(PLAYER_DATA)
     db.start_connection()
     db.c.execute(f"SELECT * FROM factories WHERE company_name = ? AND factory_id = ?", (company_name, factory_id))
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+
+def check_if_has_running_factory(company_name:str, factory_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM running_factories WHERE company_name = ? AND factory_id = ?", (company_name, factory_id))
     if len(db.c.fetchall()) == 0:
         return False
     else:
