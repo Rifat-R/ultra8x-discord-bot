@@ -2,7 +2,7 @@ from os import remove
 import disnake
 from disnake.ext import commands
 from disnake.utils import get
-from utils import database as db, pagination, constants as const, serverconfig as conf
+from funcs import database as db, pagination, constants as const, serverconfig as conf
 
 
 

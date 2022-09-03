@@ -1,5 +1,5 @@
 from sqlitedict import SqliteDict
-from utils import database as db
+from funcs import database as db
 
 
 SERVER_CONF_NAME = "serverconf.sqlite"

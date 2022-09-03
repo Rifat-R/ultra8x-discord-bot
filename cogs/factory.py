@@ -1,11 +1,10 @@
 from time import time
 from disnake.ext import commands
 import disnake
-from utils import database as db, constants as const, funcs, serverconfig as conf
+from funcs import database as db, constants as const, funcs, serverconfig as conf
 import sqlite3
 import datetime
 import math
-import random
 
 class Factory(commands.Cog):
 

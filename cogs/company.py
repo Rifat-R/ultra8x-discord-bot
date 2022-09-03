@@ -1,6 +1,6 @@
 from disnake.ext import commands
 import disnake
-from utils import database as db, constants as const, funcs, serverconfig as conf, pagination
+from funcs import database as db, constants as const, funcs, serverconfig as conf, pagination
 import sqlite3
 import math
 import random

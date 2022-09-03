@@ -1,7 +1,7 @@
 from disnake.ext import commands, tasks
 from disnake.ui import Button, View
 import disnake
-from utils import database as db, funcs, pagination, constants as const
+from funcs import database as db, funcs, pagination, constants as const
 
 class Levelling(commands.Cog):
 

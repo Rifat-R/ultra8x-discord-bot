@@ -2,7 +2,7 @@ from pydoc import describe
 import disnake
 from disnake.ext import commands
 import datetime
-from utils import database as db, blackjack, pagination, funcs, constants as const
+from funcs import database as db, blackjack, pagination, funcs, constants as const
 import sqlite3
 import asyncio
 import random

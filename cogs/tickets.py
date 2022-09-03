@@ -1,7 +1,7 @@
 from disnake.ext import commands
 from disnake.ui import Button, View
 import disnake
-from utils import database as db, pagination
+from funcs import database as db, pagination
 import asyncio
 
 class Tickets(commands.Cog):

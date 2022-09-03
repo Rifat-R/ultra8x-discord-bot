@@ -1,7 +1,7 @@
 import disnake
 from disnake.ext import commands
 import os
-from utils import init_database, constants as const
+from funcs import init_database, constants as const
 
 BOT_KEY = const.BOT_KEY
 
