@@ -79,6 +79,14 @@ def restore_database():
     """)
     player_data.commit()
 
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS company_employees
+    (
+    user_id INTEGER PRIMARY KEY,
+    company_name TEXT
+    ) 
+    """)
+    player_data.commit()
+
 #Factory
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS factories
     (

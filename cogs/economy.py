@@ -200,7 +200,7 @@ class Economy(commands.Cog):
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
 
 # BUY COMMAND
-    @commands.slash_command(description="Buy an item from the shop")
+    @commands.slash_command(description="Buy an item from /shop")
     async def buy(self, inter: disnake.CommandInteraction, item_name):
         """
         Buy an item from the shop

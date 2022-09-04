@@ -71,6 +71,30 @@ class Company(commands.Cog):
             await inter.send(f"{const.CROSS_EMOJI} No one in this server has been registered to the bot. Start by creating your account with /create", ephemeral=True)
         else:
             await inter.send(embed=embeds[0], view=pagination.Menu(embeds))
+            
+    @company.sub_command(description="Get more info about a company")
+    async def info(self, inter:disnake.CommandInteraction, company_name:str = None):
+        user = inter.author
+        if db.check_if_has_company(user.id) is False:
+            await inter.send(f"You do not have a company. Buy one using `/company create`", ephemeral=True)
+            return
+        if company_name is None:
+            company_name = db.get_company_name(user.id)
+        else:
+            company_name = company_name.lower()
+        created_at = str(db.get_company_created_at(company_name))[:-7]
+        company_founder = db.get_company_founder_author(company_name)
+        company_networth = db.get_company_networth(company_name)
+        amount_of_employees = db.get_number_of_employees(company_name)
+            
+        embed = disnake.Embed(title = f"Information about {company_name}", description = "To check company inventory use `/company inventory`", color = const.EMBED_COLOUR)
+        embed.add_field(name = "Company Founder: ", value = f"`{company_founder}`", inline = False)
+        embed.add_field(name = "Created at: ", value = f"`{created_at}`", inline = False)
+        embed.add_field(name = f"Company networth: ", value = f"`£{company_networth:,}`", inline = False)
+        embed.add_field(name = f"Number of employees: ", value = f"`{amount_of_employees}`", inline = False)
+        embed.set_footer(text=f"Requested By: {user.name} | {user.id}")
+        print(db.get_company_networth(company_name))
+        await inter.send(embed=embed)
 
 
 def setup(bot):

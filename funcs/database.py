@@ -419,6 +419,7 @@ def create_company(company_name:str, user_id:int):
     db.commit()
     db.close()
     
+
 def get_company_name(user_id:int):
     db = database(PLAYER_DATA)
     db.start_connection()
@@ -434,7 +435,19 @@ def check_if_has_company(user_id):
     else:
         return True
     
-def company_inventory_add_product(company_name:int, product_id:str, count:int):
+def get_company_created_at(company_name: str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT created_at FROM companies WHERE company_name = ?",(company_name,))
+    return db.c.fetchone()[0]
+
+def get_company_founder_author(company_name : str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT user_data.author FROM user_data INNER JOIN companies ON companies.user_id = user_data.user_id WHERE company_name = ?", (company_name,))
+    return db.c.fetchone()[0]
+    
+def company_inventory_add_product(company_name: str, product_id:str, count:int):
     db = database(PLAYER_DATA)
     db.start_connection()
     try:
@@ -460,6 +473,54 @@ def delete_company(company_name:int):
     db.commit()
     db.close()
     
+    
+def add_company_employee(user_id: int, company_name: str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"INSERT INTO company_employees (user_id,company_name) VALUES (?,?)",(user_id, company_name))
+    db.commit()
+    db.close()
+    
+def remove_company_employee(user_id: int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM company_employees WHERE user_id = ?",(user_id,))
+    db.commit()
+    db.close()
+    
+def get_employee_company_name(user_id: int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT company_name FROM company_employees WHERE user_id = ?", (user_id,))
+    return db.c.fetchone()[0]
+
+def check_if_employee(user_id : int):
+    db = database(PLAYER_DATA)
+    
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM company_employees WHERE user_id = ?", (user_id,))
+    
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+    
+def get_company_networth(company_name):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT (user_data.bank + user_data.wallet) FROM user_data INNER JOIN company_employees ON company_employees.user_id = user_data.user_id WHERE company_name = ?", (company_name,))
+    employee_networth = db.c.fetchall()
+    db.c.execute(f"SELECT (user_data.bank + user_data.wallet) FROM user_data INNER JOIN companies ON companies.user_id = user_data.user_id WHERE company_name = ?", (company_name,))
+    founder_networth = db.c.fetchall()
+    networth_list = employee_networth + founder_networth
+    networth_list = [i[0] for i in networth_list]
+    return sum(networth_list)
+
+def get_number_of_employees(company_name: str):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT COUNT(company_name) FROM company_employees WHERE company_name = ?", (company_name,))
+    return db.c.fetchone()[0]
 #Factory functions
 
 def add_factory(company_name:str, factory_id):

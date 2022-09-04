@@ -117,7 +117,7 @@ def gen_shop_embed():
             price = items_dict[item_name]["buy_price"]
             description = items_dict[item_name]["description"]
             item_name = item_name.capitalize()
-            embed.add_field(name = f"{counter})`{item_name}`", value = f"Price: `{price}`\nDescription: `{description}`", inline=False)
+            embed.add_field(name = f"{counter})`{item_name}`", value = f"Price: `£{price:,}`\nDescription: `{description}`", inline=False)
             counter += 1
         
     return embeds
