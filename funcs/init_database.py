@@ -58,6 +58,15 @@ def restore_database():
     ) 
     """)
     player_data.commit()
+    
+#Economy
+    player_data.c.execute("""CREATE TABLE IF NOT EXISTS jail
+    (
+    user_id INTEGER PRIMARY KEY,
+    until_free TIMESTAMP
+    ) 
+    """)
+    player_data.commit()
 
 #Company
     player_data.c.execute("""CREATE TABLE IF NOT EXISTS companies

@@ -133,6 +133,54 @@ class Levelling(commands.Cog):
         embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
         await inter.send(embed=embed, view=view)
         
+    # @commands.slash_command(description = f"Test command")
+    # async def test(self, inter : disnake.CommandInteraction):
+        # classic_button = Button(label="Classic", style=disnake.ButtonStyle.blurple)
+        # expert_button = Button(label="Expert", style=disnake.ButtonStyle.blurple)
+        # master_button = Button(label="Master", style=disnake.ButtonStyle.blurple)
+        
+        # view = View()
+        # async def classic_button_callback(interaction:disnake.CommandInteraction):
+        #     if interaction.author.id != inter.author.id:
+        #         await interaction.response.send_message(f"This is not your embed to use.", ephemeral = True)
+        #         return
+            
+        #     #### Embed you want to send
+        #     embed = disnake.Embed(description = f"Classic", color = const.EMBED_COLOUR)
+        #     embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+        #     ####
+        #     await inter.edit_original_message(embed=embed)
+        #     await interaction.response.defer()
+
+
+        # async def expert_button_callback(interaction:disnake.CommandInteraction):
+        #     if interaction.author.id != inter.author.id:
+        #         await interaction.response.send_message(f"This is not your embed to use.", ephemeral = True)
+        #         return
+        #     embed = disnake.Embed(description = f"Expert", color = const.EMBED_COLOUR)
+        #     embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+        #     await inter.edit_original_message(embed=embed)
+        #     await interaction.response.defer()
+            
+        # async def master_button_callback(interaction:disnake.CommandInteraction):
+        #     if interaction.author.id != inter.author.id:
+        #         await interaction.response.send_message(f"This is not your embed to use.", ephemeral = True)
+        #         return
+        #     embed = disnake.Embed(description = f"Master", color = const.EMBED_COLOUR)
+        #     embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+        #     await inter.edit_original_message(embed=embed)
+        #     await interaction.response.defer()
+            
+        # classic_button.callback = classic_button_callback
+        # expert_button.callback = expert_button_callback
+        # master_button.callback = master_button_callback
+        # view.add_item(classic_button)
+        # view.add_item(expert_button)
+        # view.add_item(master_button)
+        # embed = disnake.Embed(description=f"Loaded up command", color = const.EMBED_COLOUR)
+        # embed.set_author(name=f"{inter.author.name}", icon_url=inter.author.display_avatar)
+        # await inter.send(embed=embed, view=view)
+        
         
         
             

@@ -60,6 +60,19 @@ class Economy(commands.Cog):
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
         
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
+
+        if db.check_if_user_in_jail(user.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"The other user is currently in jail hence you cannot send him money.", ephemeral = True)
+            return
+            
+        
         amount = int(amount)
         if amount > 0:
             if amount <= db.wallet(inter.author.id):
@@ -238,6 +251,11 @@ class Economy(commands.Cog):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
         
         item_name = item_name.lower()
         user = inter.author
@@ -336,7 +354,12 @@ class Economy(commands.Cog):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
-
+        
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
         user = inter.author
         wallet_balance = db.wallet(user.id)
         minimum_bet = 500
@@ -359,6 +382,75 @@ class Economy(commands.Cog):
         embed = bj.gen_embed(user, self.bot.user.name, bj.user_cards, bj.bot_cards, description=description)
 
         await inter.send(embed=embed, view=bj)
+        
+    @commands.slash_command(description="40% Chance to make money or else be sent to jail for 8 hours")
+    async def crime(self, inter: disnake.CommandInteraction):
+    
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            if str(db.get_user_jail_timestamp(inter.author.id) - datetime.datetime.now())[0] == "-":
+                db.remove_user_from_jail(inter.author.id)
+            else:
+                until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+                until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+                await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+                return
+        chance = random.randint(0,100)
+        amount = 5000
+        if chance <= 40:
+            db.update_wallet(inter.author.id, amount)
+            await inter.send(f"You have successfully committed a crime and gained **£{amount}**")
+            return
+        await inter.send(f"You got caught whilst committing a crime hence you will be sent to jail for 8 hours!")
+        db.add_user_to_jail(inter.author.id, 8)
+
+    @commands.slash_command(description="40% Chance to steal from another user")
+    async def steal(self, inter: disnake.CommandInteraction, user: disnake.Member):
+        
+        
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            if str(db.get_user_jail_timestamp(inter.author.id) - datetime.datetime.now())[0] == "-":
+                db.remove_user_from_jail(inter.author.id)
+            else:
+                until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+                until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+                await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+                return
+
+        if db.check_if_user_in_jail(user.id) is True:
+            if str(db.get_user_jail_timestamp(user.id) - datetime.datetime.now())[0] == "-":
+                db.remove_user_from_jail(inter.author.id)
+            else:                
+                until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+                until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+                await inter.send(f"The other user is currently in jail hence you cannot send him money.", ephemeral = True)
+                return
+        
+        if db.check_user(user.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
+        if db.check_user(inter.author.id) is False:
+            await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+        
+        user_wallet = db.wallet(user.id)
+        if user_wallet < 1000:
+            await inter.send(f"User you want to rob must have atleast £1000", ephemeral = True)
+            return
+        
+        
+        chance = random.randint(0,100)
+        amount = user_wallet * 0.2
+        jail_time = 24
+
+        if chance <= 40:
+            db.update_wallet(inter.author.id, amount)
+            db.deduct_wallet(user.id, amount)
+            await inter.send(f"You have successfully committed a crime and gained **£{amount}**")
+            return
+        await inter.send(f"You got caught whilst committing a crime hence you will be sent to jail for {jail_time} hours!")
+        db.add_user_to_jail(inter.author.id, jail_time)   
+         
         
 #Job commands
     @commands.slash_command()
@@ -420,6 +512,12 @@ class Economy(commands.Cog):
             await inter.send(f"You don't have a job. apply for one with `/job apply`", ephemeral = True)
             return
         
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
+        
         #Gets the job that the user has
         user_job_name = db.get_job(user.id)
         #Gets the time needed to complete job in seconds
@@ -467,6 +565,13 @@ class Economy(commands.Cog):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
+        
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
+
 
         AMOUNT = 5000
 
@@ -478,6 +583,12 @@ class Economy(commands.Cog):
     async def beg(self, inter: disnake.CommandInteraction):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
+            return
+
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
             return
 
         random_amount = random.randint(25,150)
@@ -492,6 +603,12 @@ class Economy(commands.Cog):
         if db.check_user(inter.author.id) is False:
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
+        
+        if db.check_if_user_in_jail(inter.author.id) is True:
+            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+            return
 
         AMOUNT = 25000
 
@@ -500,10 +617,16 @@ class Economy(commands.Cog):
 
     # Testing purposes (The id is Anom4ly's)
     
-    # @commands.slash_command(description="pog")
-    # async def test(self, ctx):
-    #     db.set_working_status_false(ctx.author.id)
-    #     await ctx.send(f"Set working status as false", ephemeral = True)
+    @commands.slash_command()
+    async def test(self, inter: disnake.CommandInteraction):
+        db.remove_user_from_jail(338764415358861314)
+        # db.add_user_to_jail(338764415358861314, 10)
+        # until_free_timestamp = db.get_user_jail_timestamp(338764415358861314)
+        # await inter.send(f"{until_free_timestamp - datetime.datetime.now()} ")
+        if db.check_if_user_in_jail(338764415358861314):
+            await inter.send(f"User is in jail")
+            return
+        await inter.send(f"User is not in jail")
 
     # @commands.command()
     # async def money(self, ctx):

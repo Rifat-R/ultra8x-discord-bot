@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from funcs import funcs
 
 class database:
@@ -591,4 +591,41 @@ def check_if_has_running_factory(company_name:str, factory_id):
         return False
     else:
         return True
+    
+#Jail system functions
 
+def add_user_to_jail(user_id: int, duration: int):
+    """Add's user to jail.
+
+    Args:
+        user_id (int): User's discord ID
+        duration (int): Duration measured in HOURS.
+    """
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    user_free_timestamp = datetime.now() + timedelta(hours = duration)
+    db.c.execute(f"INSERT INTO jail (user_id, until_free) VALUES (?,?)",(user_id, user_free_timestamp))
+    db.commit()
+    db.close() 
+
+def remove_user_from_jail(user_id: int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"DELETE FROM jail WHERE user_id = ?",(user_id,))
+    db.commit()
+    db.close()
+    
+def check_if_user_in_jail(user_id):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT * FROM jail WHERE user_id = ?", (user_id,))
+    if len(db.c.fetchall()) == 0:
+        return False
+    else:
+        return True
+    
+def get_user_jail_timestamp(user_id: int):
+    db = database(PLAYER_DATA)
+    db.start_connection()
+    db.c.execute(f"SELECT until_free FROM jail WHERE user_id = ?", (user_id,))
+    return db.c.fetchone()[0]

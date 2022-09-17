@@ -82,7 +82,7 @@ class Factory(commands.Cog):
             return
         db.deduct_wallet(user.id, factory_price)
         await inter.send(f"You bought a Factory with the ID: `{factory_id}` Price: `{factory_price:,}`")
-    
+
 
     @factory.sub_command(description="View all your running factories")
     async def view(self, inter:disnake.CommandInteraction):       
