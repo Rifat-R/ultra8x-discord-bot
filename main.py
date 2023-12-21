@@ -2,14 +2,16 @@ import disnake
 from disnake.ext import commands
 import os
 from funcs import init_database, constants as const
+from dotenv import load_dotenv
 
-BOT_KEY = const.BOT_KEY
+load_dotenv()
+BOT_KEY = os.getenv("BOT_KEY")
 
 intents = disnake.Intents.default()
 intents.members = True  
 intents.message_content = True
 
-bot = commands.Bot(intents=intents, activity=disnake.Game(name="PyCharm"))
+bot = commands.InteractionBot(intents=intents, activity=disnake.Game(name="PyCharm"))
 
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
@@ -22,7 +24,7 @@ async def tasks():
 
 
 def main():
-    bot.loop.create_task(tasks())
+    ok = bot.loop.create_task(tasks())
     bot.run(BOT_KEY) 
 
 

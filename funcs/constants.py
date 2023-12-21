@@ -1,8 +1,3 @@
-
-
-BOT_KEY = "NzQwMTg1NTk2NTI1NTQzNDI0.G92hI3.qvqaed90aJW9xKJWx9mwq5dDL5KLxYaKWihGiw"
-
-
 #Databases
 PLAYER_DATA_DATABASE = "player_data.db"
 SERVERCONF_DATABASE = "server_config.db"

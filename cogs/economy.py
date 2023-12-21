@@ -355,11 +355,11 @@ class Economy(commands.Cog):
             await inter.send(const.REGISTER_ERROR, ephemeral = True)
             return
         
-        if db.check_if_user_in_jail(inter.author.id) is True:
-            until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
-            until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
-            await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
-            return
+        # if db.check_if_user_in_jail(inter.author.id) is True:
+        #     until_free_timedelta = db.get_user_jail_timestamp(inter.author.id)
+        #     until_free_timestamp = str(until_free_timedelta - datetime.datetime.now())
+        #     await inter.send(f"You are currently in jail. You can use this command in: `{until_free_timestamp[:-7]}`", ephemeral = True)
+        #     return
         user = inter.author
         wallet_balance = db.wallet(user.id)
         minimum_bet = 500
