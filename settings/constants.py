@@ -1,6 +1,6 @@
 #Databases
-PLAYER_DATA_DATABASE = "player_data.db"
-SERVERCONF_DATABASE = "server_config.db"
+PLAYER_DATA_DATABASE = "data/player_data.db"
+SERVER_CONF_NAME = "data/server_conf.sqlite"
 
 #For Levelling System
 STARTING_VALUE = 100

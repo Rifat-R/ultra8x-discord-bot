@@ -1,9 +1,11 @@
 from disnake.ext import commands
 import disnake
-from funcs import database as db, constants as const, funcs, serverconfig as conf
+from funcs import database as db, funcs, serverconfig as conf
 import sqlite3
 import math
 import random
+
+from settings import constants as const
 
 class listeners_Cog(commands.Cog):
 

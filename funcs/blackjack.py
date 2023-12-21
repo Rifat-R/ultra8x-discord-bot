@@ -1,7 +1,9 @@
 import disnake
 import random
-from funcs import database as db, constants as const
+from funcs import database as db
 from typing import List
+
+from settings import constants as const
 
 
 class blackjack(disnake.ui.View):

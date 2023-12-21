@@ -1,10 +1,11 @@
-from time import time
 from disnake.ext import commands
 import disnake
-from funcs import database as db, constants as const, funcs, serverconfig as conf
+from funcs import database as db, funcs
 import sqlite3
 import datetime
 import math
+
+from settings import constants as const
 
 class Factory(commands.Cog):
 

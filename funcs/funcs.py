@@ -1,7 +1,9 @@
-from funcs import database as db, constants as const, pagination, serverconfig as conf
+from funcs import database as db, pagination
 import math
 import json
 import disnake
+
+from settings import constants as const
 
 def get_exact_level(user_id:int) -> float:
     """Gets exact flaot value of user's level and how far he is from
@@ -27,7 +29,7 @@ def get_next_level_xp(user_id:int) -> int:
     
 
 def get_shop_dict():
-    with open("funcs/shop.json") as f:
+    with open("data/shop.json") as f:
         shop_data = json.load(f)
         
     return shop_data
@@ -35,7 +37,7 @@ def get_shop_dict():
 
 #Job funcs
 def get_job_list_dict():
-    with open("funcs/jobs.json") as f:
+    with open("data/jobs.json") as f:
         return json.load(f)
     
     
@@ -136,7 +138,7 @@ def convert_to_ordinal(number:int):
     
 #Factory funcs
 def get_factories_dict():
-    with open("funcs/factories.json") as f:
+    with open("data/factories.json") as f:
         factory = json.load(f)
         
     return factory["factories"]
@@ -156,7 +158,7 @@ def check_if_factory_exists(factory_id:str):
         
 
 def get_products_dict():
-    with open("funcs/factories.json") as f:
+    with open("data/factories.json") as f:
         factory = json.load(f)
         
     return factory["products"]

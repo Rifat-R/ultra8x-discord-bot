@@ -1,11 +1,11 @@
-from pydoc import describe
 import disnake
 from disnake.ext import commands
 import datetime
-from funcs import database as db, blackjack, pagination, funcs, constants as const
+from funcs import database as db, blackjack, pagination, funcs
 import sqlite3
 import asyncio
 import random
+from settings import constants as const
 
 
 class Economy(commands.Cog):

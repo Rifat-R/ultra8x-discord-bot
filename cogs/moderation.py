@@ -1,8 +1,7 @@
-from os import remove
 import disnake
 from disnake.ext import commands
-from disnake.utils import get
-from funcs import database as db, pagination, constants as const, serverconfig as conf
+from funcs import database as db, pagination, serverconfig as conf
+from settings import constants as const
 
 
 

@@ -1,9 +1,8 @@
 from disnake.ext import commands
 import disnake
-from funcs import database as db, constants as const, funcs, serverconfig as conf, pagination
+from funcs import database as db, funcs, serverconfig as conf, pagination
 import sqlite3
-import math
-import random
+from settings import constants as const
 
 class Company(commands.Cog):
 

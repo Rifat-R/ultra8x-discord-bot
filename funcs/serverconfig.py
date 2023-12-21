@@ -1,14 +1,8 @@
 from sqlitedict import SqliteDict
-from funcs import database as db
-
-
-SERVER_CONF_NAME = "serverconf.sqlite"
-
-
-
+from settings import constants as const
 
 def add_filter_word(word:str):
-    db = SqliteDict(SERVER_CONF_NAME)
+    db = SqliteDict(const.SERVER_CONF_NAME)
     filter_word_list = db.get("filter_word_list")
     if db.get("filter_word_list") is None:
         filter_word_list = []
@@ -19,7 +13,7 @@ def add_filter_word(word:str):
     db.close()
     
 def remove_filter_word(word:str):
-    db = SqliteDict(SERVER_CONF_NAME)
+    db = SqliteDict(const.SERVER_CONF_NAME)
     filter_word_list = db.get("filter_word_list")
     if db.get("filter_word_list") is None:
         raise ValueError(f"Cannot remove `{word}` from filter word list as list does not exist")
@@ -31,7 +25,7 @@ def remove_filter_word(word:str):
     
     
 def get_filter_word_list():
-    db = SqliteDict(SERVER_CONF_NAME)
+    db = SqliteDict(const.SERVER_CONF_NAME)
     filter_word_list = db.get("filter_word_list")
     if filter_word_list is None:
         filter_word_list = []
@@ -40,7 +34,7 @@ def get_filter_word_list():
     
 def set_welcome_message(guild_id:str, channel_id:int , message:str):
     guild_id = str(guild_id)
-    db = SqliteDict(SERVER_CONF_NAME)
+    db = SqliteDict(const.SERVER_CONF_NAME)
     welcome_message_dict = db.get("welcome_message")
     if welcome_message_dict is None:
         db["welcome_message"] = {guild_id : {"message": message, "channel_id" : channel_id}}
@@ -59,7 +53,7 @@ def set_welcome_message(guild_id:str, channel_id:int , message:str):
     
 def get_welcome_message(guild_id:str):
     guild_id = str(guild_id)
-    db = SqliteDict(SERVER_CONF_NAME)
+    db = SqliteDict(const.SERVER_CONF_NAME)
     welcome_message_dict = db.get("welcome_message")
     if welcome_message_dict is None:
         return None, None
@@ -76,12 +70,12 @@ def get_welcome_message(guild_id:str):
 #Need to make make sure how I want to setup xp_rate
 # #Not multi-server
 # def get_xp_rate():
-#     db = SqliteDict(SERVER_CONF_NAME)
+#     db = SqliteDict(const.SERVER_CONF_NAME)
 #     xp_rate = db.get("xp_rate")
 #     return xp_rate
 
 # def set_xp_rate(xp_rate:int):
-#     db = SqliteDict(SERVER_CONF_NAME)
+#     db = SqliteDict(const.SERVER_CONF_NAME)
 #     db["xp_rate"] = xp_rate
 #     db.commit()
 #     db.close()

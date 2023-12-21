@@ -1,4 +1,5 @@
-from funcs import database as db, constants as const
+from funcs import database as db
+from settings import constants as const
 
 player_data = db.database(const.PLAYER_DATA_DATABASE)
 

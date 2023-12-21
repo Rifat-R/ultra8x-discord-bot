@@ -1,7 +1,7 @@
 import disnake
 from disnake.ext import commands
 import os
-from funcs import init_database, constants as const
+from funcs import init_database
 from dotenv import load_dotenv
 
 load_dotenv()
